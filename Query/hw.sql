@@ -48,16 +48,18 @@ Select count(*) from CatchedPokemon as cp where pid in ( select before_id  from 
 Select count(*) From Pokemon Where type in ('Water', 'Electric', 'Psychic');
 
 /*17*/
-SELECT p.type, count(*) From Pokemon as p join CatchedPokemon as cp On cp.pid = p.id Join Trainer as tr On tr.id = cp.owner_id where tr.hometown = 'Sangnok City' Group by p.type;
+Select Count(distinct cp.pid) From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id Where tr.hometown = 'Sangnok City';
 
 /*18*/
 Select cp.level From Trainer as tr Join CatchedPokemon as cp  On cp.owner_id = tr.id where tr.hometown = 'Sangnok City' order by cp.level desc limit 1;
 
 /*19*/
-select p.type, count(*) from Pokemon as p Join CatchedPokemon as cp On cp.pid = p.id where cp.owner_id In (select leader_id from Gym where Gym.city = 'Sangnok City') group by type;
+select count(distinct p.type) from Pokemon as p Join CatchedPokemon as cp On cp.pid = p.id where cp.owner_id In (select leader_id from Gym where Gym.city = 'Sangnok City');
+
 
 /*20*/
-Select tr.name, count(*)  From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id group by tr.name  order by count(*) asc;
+Select tr.name, count(*) From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id where tr.hometown = 'Sangnok City' group by tr.name order by count(*) asc;
+
 
 /*21*/
 Select name From Pokemon Where name like 'A%' or name like 'I%' or name like 'E%' or name like 'O%' or name Like 'U%';
@@ -93,22 +95,24 @@ Select p0.id, p0.name, p1.name, p2.name From Pokemon as p0 Join Evolution as e1 
 select name from Pokemon where id > 9 and id <100 order by name asc;
 
 /*32*/
-select p.name From Pokemon as p  Where p.id not in ( Select cp.pid From CatchedPokemon as cp );
+select p.name From Pokemon as p  Where p.id not in ( Select cp.pid From CatchedPokemon as cp ) order by p.name asc;
+
 
 /*33*/
 Select Sum(cp.level)  From CatchedPokemon as cp Join Trainer as tr On cp.owner_id = tr.id Where tr.name = 'Matis';
 
 /*34*/
-Select tr.name  From Trainer as tr Join Gym as g On g.leader_id = tr.id;
-
+Select tr.name  From Trainer as tr Join Gym as g On g.leader_id = tr.id order by tr.name asc;
 /*35*/
 select Pokemon.type, p1.c / count(*) * 100 from Pokemon, (select type, count(*) as c from Pokemon group by type order by c desc limit 1)p1;
 
-/*36*/
+/*36  do group by or not */
 Select tr.name From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id Where cp.nickname Like 'A%' Group by tr.name Order by tr.name asc;
 
 /*37*/
 Select tr.name, Sum(cp.level)  From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id order by Sum(cp.level) desc Limit 1;
+
+Select tr.name, Sum(distinct cp.level)  From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id group by tr.name order by sum(distinct cp.level) desc limit 1;
 
 /*38*/
 select name From Pokemon where id in (select after_id from Evolution Where after_id not in ( select e2.after_id From Evolution as e1 Join Evolution as e2 On e1.after_id = e2.before_id )) order by name asc;
