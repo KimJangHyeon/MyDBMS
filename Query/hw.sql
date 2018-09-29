@@ -110,26 +110,14 @@ select Pokemon.type, p1.c / count(*) * 100 from Pokemon, (select type, count(*) 
 Select tr.name From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id Where cp.nickname Like 'A%' Group by tr.name Order by tr.name asc;
 
 /*37*/
-Select tr.name, Sum(cp.level)  From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id order by Sum(cp.level) desc Limit 1;
-
 Select tr.name, Sum(distinct cp.level)  From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id group by tr.name order by sum(distinct cp.level) desc limit 1;
 
 /*38*/
 select name From Pokemon where id in (select after_id from Evolution Where after_id not in ( select e2.after_id From Evolution as e1 Join Evolution as e2 On e1.after_id = e2.before_id )) order by name asc;
 
 /*39*/
-select distinct tr.name From Trainer as tr Join CatchedPokemon as cp On cp.owner_id = tr.id group by pid having count(*) >= 2 order by tr.name asc;
+Select tr.name From Trainer as tr Join CatchedPokemon as cp On tr.id = cp.owner_id group by cp.pid, tr.name having count(*) >= 2 order by tr.name asc;
 
 /*40*/
-Select t1.hometown, t1.nickname, t1.level
-from City as c
-Join (
-        Select tr.hometown, cp.nickname, cp.level
-        From Trainer as tr
-        Join CatchedPokemon as cp
-        On cp.owner_id = tr.id
-        where tr.hometown = c.name
-        order by cp.level desc
-        limit 1
-        )t1
-On t1.hometown = c.name;
+Select tr1.hometown, cp1.nickname From Trainer as tr1 Join CatchedPokemon as cp1 On tr1.id = cp1.owner_id Join (select tr.hometown, max(cp.level) as max_level  From Trainer as tr Join CatchedPokemon as cp On tr.id = cp.owner_id group by tr.hometown)j1 On j1.hometown = tr1.hometown and cp1.level = j1.max_level order by tr1.hometown asc;
+
