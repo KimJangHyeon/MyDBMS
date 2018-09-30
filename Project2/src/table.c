@@ -27,6 +27,15 @@ get_tid() {
 	return TIDFULL;
 }
 
+char*
+get_path(int tid) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) 
+			return tp.tables[i].name;
+			//memcpy(path, tp.tables[i].name, TABLENAME);
+	}
+}
+
 int
 rm_tid(int tid) {
 	//tids lock
@@ -38,6 +47,24 @@ rm_tid(int tid) {
 	return 0;
 }
 
+void
+put_fd(int tid, int fd) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) {
+			tp.tables[i].fd = fd;
+			return;
+		}
+	}	
+}
+
+int 
+get_fd(int tid) {
+	for (int i = 0; i < tp.count; i++) { 
+		if (tp.tables[i].tid == tid) 
+			return tp.tables[i].fd;
+	}
+}
+
 int 
 open_table(char* path) {
 	int mid;
@@ -45,11 +72,13 @@ open_table(char* path) {
 	int low = 0;
 	int tid;
 	int compare;
+	char* dir = "datas/";
 
 	Table* temp = (Table*)malloc(sizeof(Table));
 
 	memset(temp, 0, sizeof(Table));
-	memcpy(temp->name, path, sizeof(char) * strlen(path));
+	memcpy(temp->name, dir, strlen(dir));
+	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	//open_disk
 	//something
 	if ((tid = get_tid()) == TIDFULL) {
@@ -59,7 +88,7 @@ open_table(char* path) {
 	}
 	
 	temp->tid = tid;
-
+	temp->fd = FDCLOSE;
 
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));
@@ -137,7 +166,7 @@ print_tp() {
 	}
 	printf(")\n");
 	for (int i = 0; i < tp.count; i++) {
-		printf("(%d, %d, %s), ", i, tp.tables[i].tid, tp.tables[i].name);
+		printf("(i:%d,tid:%d,fd:%d, p:%s), ", i, tp.tables[i].tid,tp.tables[i].fd, tp.tables[i].name);
 	}
 	printf("\n\n");
 }

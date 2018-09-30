@@ -25,3 +25,4 @@
 
 //============= SIGNAL ================
 #define TIDFULL			-1
+#define FDCLOSE			-1

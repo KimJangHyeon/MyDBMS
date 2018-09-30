@@ -1,6 +1,7 @@
 
 typedef struct _Table {
 	int tid;
+	int fd;
 	char name[TABLENAME];
 } Table;
 
@@ -14,4 +15,7 @@ void init_tablepool();
 int open_table(char*);
 int close_table(int);
 void print_tp();
+char* get_path(int);
+int get_fd(int);
+void put_fd(int, int);
 
