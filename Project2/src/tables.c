@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "param.h"
-#include "table.h"
+#include "params.h"
+#include "tables.h"
 
 TablePool tp;
 

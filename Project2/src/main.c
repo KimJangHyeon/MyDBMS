@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "param.h"
-#include "table.h"
-#include "disk.h"
+#include "params.h"
+#include "tables.h"
+#include "disks.h"
 int main() {
 	init_tablepool();
 	char* path = "ddb";

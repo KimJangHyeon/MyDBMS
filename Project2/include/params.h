@@ -22,6 +22,9 @@
 #define PAGESIZE		4096
 #define PAGEHSIZE		128
 #define PAGETHSIZE		64
+#define PAGEBHSIZE		64
+#define LHEADERSIZE		120
+#define IHEADERSIZE		112
 
 //============= SIGNAL ================
 #define TIDFULL			-1
