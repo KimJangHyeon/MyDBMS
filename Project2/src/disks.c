@@ -23,11 +23,13 @@ open_disk(int tid) {
 		return -1;
 	}
 
-	if( lseek(fd, 0, SEEK_END) == 0 ) {
-		init_table
-	}
-
 	put_fd(tid, fd);
+	
+	if( lseek(fd, 0, SEEK_END) == 0 ) {
+		close_disk(tid);
+		init_table(tid);
+		fd = open_disk(tid);
+	}
 	return fd; 
 }
 
@@ -90,5 +92,5 @@ dealloc_page(utable_t tid, uoffset_t offset) {
 //expand_after alloc 
 void 
 expand_page(utable_t tid, int size ) {
-	
+		
 }

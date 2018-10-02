@@ -10,7 +10,7 @@
 #define NTID			10
 #define LRECORD			4//_31
 #define IRECORD			4//_248
-
+#define FREEINIT		7
 
 //============= OFFSET ================
 //init
