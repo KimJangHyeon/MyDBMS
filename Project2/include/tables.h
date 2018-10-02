@@ -12,10 +12,10 @@ typedef struct _TablePool {
 } TablePool;
 
 void init_tablepool();
-int open_table(char*);
-int close_table(int);
+utable_t open_table(char*);
+int close_table(utable_t);
 void print_tp();
-char* get_path(int);
-int get_fd(int);
-void put_fd(int, int);
+char* get_path(utable_t);
+int get_fd(utable_t);
+void put_fd(utable_t, int);
 

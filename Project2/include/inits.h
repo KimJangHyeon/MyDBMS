@@ -1,1 +1,1 @@
-init_table(int);
+void init_table(int);

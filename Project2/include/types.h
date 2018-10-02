@@ -1,5 +1,5 @@
 #include <inttypes.h>
-
+#include <stdbool.h>
 typedef char ubyte_t;
 typedef uint64_t uoffset_t;
 typedef uint64_t unumber_t;

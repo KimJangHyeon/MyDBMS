@@ -11,6 +11,8 @@
 #include "pages.h"
 #include "tables.h" 
 #include "utils.h"
+#include "disks.h"
+#include "inits.h"
 int
 open_disk(int tid) {
         char* db_path;
@@ -91,6 +93,41 @@ dealloc_page(utable_t tid, uoffset_t offset) {
 
 //expand_after alloc 
 void 
-expand_page(utable_t tid, int size ) {
-		
+extend_page(utable_t tid, int size ) {
+    //이 함수 호출 이전에 expand lock 하고 ㄱㄱ 
+    FreePage first_free_page;
+    HeaderPage* m_header = (HeaderPage*)malloc(sizeof(HeaderPage));
+    uoffset_t num_cur_pages;
+    
+    //read_buffer(tid, C_HeaderOffset, (Page*)m_header);
+	load_page(tid, HEADEROFFSET, (Page*)m_header);
+
+    num_cur_pages = m_header->number_of_pages;
+    
+    FreePage* free_page = (FreePage*)malloc(sizeof(FreePage));
+    uoffset_t free_page_offset = size * PAGESIZE;
+    uoffset_t expand_limit;
+    if(size == 1)
+        expand_limit = 8 * PAGESIZE;
+    else
+        expand_limit = (size * 2) * PAGESIZE;
+
+    memset(free_page, '\0', PAGESIZE);
+    for(; free_page_offset < expand_limit; free_page_offset += PAGESIZE) {
+        free_page->next_free_page = free_page_offset - PAGESIZE;
+        flush_page(tid, free_page_offset, (Page*)free_page);
+    }
+    free(free_page);
+    
+    load_page(tid, num_cur_pages * PAGESIZE, (Page*)&first_free_page);
+    first_free_page.next_free_page = m_header->f_page_offset;
+    flush_page(tid, num_cur_pages * PAGESIZE, (Page*)&first_free_page);
+
+    m_header->f_page_offset = (size + num_cur_pages - 1) * PAGESIZE;
+    m_header->number_of_pages += size;
+    m_header->number_of_free_pages += size;
+    flush_page(tid, HEADEROFFSET, (Page*)m_header);
 }
+
+
+

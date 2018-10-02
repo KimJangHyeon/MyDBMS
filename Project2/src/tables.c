@@ -2,7 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "params.h"
+#include "types.h"
+#include "pages.h"
 #include "tables.h"
+#include "disks.h"
+
 
 TablePool tp;
 
@@ -28,7 +32,7 @@ get_tid() {
 }
 
 char*
-get_path(int tid) {
+get_path(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) {
 		if (tp.tables[i].tid == tid) 
 			return tp.tables[i].name;
@@ -37,7 +41,7 @@ get_path(int tid) {
 }
 
 int
-rm_tid(int tid) {
+rm_tid(utable_t tid) {
 	//tids lock
 	if (tid <= 0 || tid > NTID) {
 		printf("tid range err\n");
@@ -48,7 +52,7 @@ rm_tid(int tid) {
 }
 
 void
-put_fd(int tid, int fd) {
+put_fd(utable_t tid, int fd) {
 	for (int i = 0; i < tp.count; i++) {
 		if (tp.tables[i].tid == tid) {
 			tp.tables[i].fd = fd;
@@ -58,14 +62,14 @@ put_fd(int tid, int fd) {
 }
 
 int 
-get_fd(int tid) {
+get_fd(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) { 
 		if (tp.tables[i].tid == tid) 
 			return tp.tables[i].fd;
 	}
 }
 
-int 
+utable_t 
 open_table(char* path) {
 	int mid;
 	int high = tp.count - 1;
@@ -135,7 +139,7 @@ open_table(char* path) {
 }
 
 int 
-close_table(int tid) {
+close_table(utable_t tid) {
 	int isSuccess = 0;
 	int i;
 	if(rm_tid(tid)) {
