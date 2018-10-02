@@ -19,9 +19,14 @@ open_disk(int tid) {
 	if((fd = open(db_path, O_CREAT | O_RDWR, 0777)) == -1) {
 		printf("path: %s\n", db_path);
         	fprintf(stderr, "Write error: %s\n", strerror(errno));
-        	//panic("(disk.c)open file error");
+        	panic("(disk.c)open file error");
 		return -1;
 	}
+
+	if( lseek(fd, 0, SEEK_END) == 0 ) {
+		init_table
+	}
+
 	put_fd(tid, fd);
 	return fd; 
 }
