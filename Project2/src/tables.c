@@ -72,13 +72,11 @@ open_table(char* path) {
 	int low = 0;
 	int tid;
 	int compare;
+	int fd;
 	char* dir = "datas/";
 
 	Table* temp = (Table*)malloc(sizeof(Table));
 
-	memset(temp, 0, sizeof(Table));
-	memcpy(temp->name, dir, strlen(dir));
-	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	//open_disk
 	//something
 	if ((tid = get_tid()) == TIDFULL) {
@@ -87,8 +85,12 @@ open_table(char* path) {
 		return -1;
 	}
 	
+	memset(temp, 0, sizeof(Table));
+	memcpy(temp->name, dir, strlen(dir));
+	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	temp->tid = tid;
 	temp->fd = FDCLOSE;
+
 
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));
@@ -123,7 +125,12 @@ open_table(char* path) {
 //	memset(&(tp.tables[i + 1]), 0, sizeof(Table));
 	memcpy(&(tp.tables[mid]), temp, sizeof(Table));
 	tp.count++;
-	
+
+	//for init_table
+	open_disk(tid);
+	close_disk(tid);
+
+
 	return tid;
 }
 

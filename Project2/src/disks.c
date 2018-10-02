@@ -40,6 +40,8 @@ close_disk(int tid) {
 
 }
 
+//use not in buffer 
+//only for free page ??
 void
 flush_page(utable_t tid, uoffset_t offset, Page* page) {
         int fd;
@@ -75,4 +77,18 @@ load_page(utable_t tid, uoffset_t offset, Page* page) {
         }
 }
 
+uoffset_t 
+alloc_page(utable_t tid) {
 
+}
+
+void
+dealloc_page(utable_t tid, uoffset_t offset) {
+
+}
+
+//expand_after alloc 
+void 
+expand_page(utable_t tid, int size ) {
+	
+}
