@@ -16,7 +16,7 @@
 //init
 //constant
 #define HEADEROFFSET	0
-
+#define INITOFFSET		0
 
 //============= SIZE ==================
 #define PAGESIZE		4096
@@ -25,10 +25,14 @@
 #define PAGEBHSIZE		64
 #define LHEADERSIZE		120
 #define IHEADERSIZE		112
-
+#define VALUESIZE		120
+#define IRECORDSIZE		16
+#define LRECORDSIZE		128
 //============= PERCENT ===============
 #define EXTENDPERCENT	0.20
 
 //============= SIGNAL ================
 #define TIDFULL			-1
 #define FDCLOSE			-1
+#define True			1
+#define False			0

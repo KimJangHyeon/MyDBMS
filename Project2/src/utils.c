@@ -8,6 +8,50 @@
 #include "pages.h"
 #include "disks.h"
 #include "utils.h"
+
+#define QueueSize 10000
+#define NextDepth 1
+
+typedef struct _Queue {
+    int front;
+    int end;
+    uoffset_t queueArr[QueueSize];
+} Queue;
+
+Queue queue;
+
+void init_queue() {
+    queue.front = 0;
+    queue.end = 0;
+}
+
+bool q_isEmpty() {
+    if( queue.front == queue.end )
+    return true;
+    else return false;
+}
+
+bool q_isFull() {
+    int tmp = (queue.end + 1)%QueueSize;
+    if (tmp == queue.front)
+        return true;
+    else
+        return false;
+}
+
+void enqueue(uoffset_t value) {
+    queue.queueArr[queue.end++] = value;
+    queue.end = queue.end%QueueSize;
+}
+
+uoffset_t dequeue() {
+    uoffset_t ret;
+    ret = queue.queueArr[queue.front];
+    queue.front = (queue.front + 1)%QueueSize;
+    return ret;
+}
+
+
 void 
 panic(char* error) {
         printf("panic: %s\n", error);
@@ -168,6 +212,61 @@ d_free_page_ditector(utable_t tid) {
                 printf("nfo/4096: %lu\n", fp.next_free_page/4096);
                 printf("****************************\n");
         } while(fp.next_free_page != 0); 
+}
+
+
+void
+d_print_tree(utable_t tid) {
+    HeaderPage hp;
+    NodePage nd;
+    LeafPage lp;
+    InternalPage ip;
+    load_page(tid, 0, (Page*)&hp);
+    uoffset_t offset;
+
+    if(hp.r_page_offset == 0) {
+        printf ("Empty\n");
+        return;
+    }
+    enqueue(hp.r_page_offset);
+    enqueue(0);
+    printf("******************************* tree *****************************\n");
+    while (queue.front < queue.end) {
+        uoffset_t page_offset = dequeue();
+
+        if (page_offset == 0) {
+            printf("\n");
+
+            if (queue.front == queue.end) break;
+
+            enqueue(0);
+            continue;
+        }
+
+        load_page(tid, page_offset, (Page*)&nd);
+        if(nd.header_top.isLeaf) {
+            printf("(%lu, %lu, %lu) ", page_offset, nd.header_top.poffset, ((LeafPage*)&nd)->sibling);
+            memcpy(&lp, &nd, PAGESIZE);
+            for(int i = 0; i < lp.header_top.num_keys; i++) {
+                //printf("(%lu, /*%s)", lp.record[i].key, lp.record[i].value);
+                printf("%lu ", lp.record[i].key);
+            }
+            printf("| ");
+        }
+        else {
+            printf("(%lu, %lu) ", page_offset, nd.header_top.poffset);
+            memcpy(&ip, &nd, PAGESIZE);
+            for(int i = 0; i < ip.header_top.num_keys; i++) {
+                //printf("(%lu, %lu), ", ip.record[i].key, ip.record[i].offset);
+                if(i != 0)
+                    printf("%lu ", ip.record[i].key);
+                enqueue(ip.record[i].offset);
+			}
+            printf("| ");
+        }
+    }
+    printf("\n******************************************************************\n");
+
 }
 
 
