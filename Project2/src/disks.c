@@ -12,6 +12,7 @@
 #include "tables.h" 
 #include "utils.h"
 #include "disks.h"
+#include "buffers.h"
 #include "inits.h"
 int
 open_disk(utable_t tid) {
@@ -85,27 +86,65 @@ load_page(utable_t tid, uoffset_t offset, Page* page) {
 
 uoffset_t 
 alloc_page(utable_t tid) {
+    uoffset_t alloc_offset;
+    FreePage free_page;
+    HeaderPage* m_header = (HeaderPage*)malloc(sizeof(HeaderPage));
+    unumber_t cur_free_page_num;
+    unumber_t cur_page_num;
+   
+	read_buffer(tid, HEADEROFFSET, (Page*)m_header);
 
+	//if free page 0
+	while (m_header->number_of_free_pages == 0) {
+		printf("WARNING: free pages are 0\n");
+		read_buffer(tid, HEADEROFFSET, (Page*)m_header);
+	}
+    
+	alloc_offset = m_header->f_page_offset;
+    read_buffer(tid, alloc_offset, (Page*)&free_page);
+    m_header->f_page_offset = free_page.next_free_page;
+    m_header->number_of_free_pages -= 1;
+    cur_free_page_num = m_header->number_of_free_pages;
+    cur_page_num = m_header->number_of_pages;
+
+
+    write_buffer(tid, HEADEROFFSET, (Page*)m_header);
+    
+	if(EXTENDPERCENT >= ((double)cur_free_page_num / (double)cur_page_num)) {
+        //extend thread call --> 현재 있는 thread를 작동 시킨다.(새로 생성하면 extend끼리 겹>칠 수 있음-done-)
+        //extend create 가능하지만 alloc thread가 죽으면 어쩔거?
+        //main thread가 지할거 다하고 기다린다?? (join)
+        extend_page(tid, cur_page_num);
+    }
+
+    return alloc_offset;
 }
 
 void
 dealloc_page(utable_t tid, uoffset_t offset) {
-
+    HeaderPage* m_header = (HeaderPage*)malloc(sizeof(HeaderPage));
+    FreePage free_page;
+    
+    memset(&free_page, offset, PAGESIZE);
+    
+    read_buffer(tid, HEADEROFFSET, (Page*)m_header);
+    
+	free_page.next_free_page = m_header->f_page_offset;
+    m_header->f_page_offset = offset;
+    m_header->number_of_free_pages++;
+    flush_page(tid, offset, (Page*)&free_page);
+    write_buffer(tid, HEADEROFFSET, (Page*)m_header);
 }
 
-//extend 시에 header만 write, read buffer 하고 나머지는 flush, load로 처리
-//expand_after alloc 
 void 
 extend_page(utable_t tid, int size ) {
-    //이 함수 호출 이전에 expand lock 하고 ㄱㄱ 
     HeaderPage* m_header = (HeaderPage*)malloc(sizeof(HeaderPage));
     FreePage* free_page = (FreePage*)malloc(sizeof(FreePage));
     FreePage first_free_page;
     uoffset_t num_cur_pages;
     uoffset_t expand_limit;
     
-    //read_buffer(tid, HEADEROFFSET, (Page*)m_header);
-	load_page(tid, HEADEROFFSET, (Page*)m_header);
+    read_buffer(tid, HEADEROFFSET, (Page*)m_header);
     num_cur_pages = m_header->number_of_pages;
     uoffset_t free_page_offset = num_cur_pages * PAGESIZE;	
 	expand_limit = (size + num_cur_pages) * PAGESIZE;
@@ -124,8 +163,7 @@ extend_page(utable_t tid, int size ) {
     m_header->f_page_offset = (size + num_cur_pages - 1) * PAGESIZE;
     m_header->number_of_pages += size;
     m_header->number_of_free_pages += size;
-    //write_buffer(tid, HEADEROFFSET, (Page*)m_header);
-    flush_page(tid, HEADEROFFSET, (Page*)m_header);
+    write_buffer(tid, HEADEROFFSET, (Page*)m_header);
 }
 
 

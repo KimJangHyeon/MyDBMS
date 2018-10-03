@@ -26,6 +26,9 @@
 #define LHEADERSIZE		120
 #define IHEADERSIZE		112
 
+//============= PERCENT ===============
+#define EXTENDPERCENT	0.20
+
 //============= SIGNAL ================
 #define TIDFULL			-1
 #define FDCLOSE			-1
