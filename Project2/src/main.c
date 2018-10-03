@@ -151,9 +151,10 @@ void test(utable_t tid) {
 
 char client() {
 	char choice;
-	printf("insert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n");
+	printf("*****************\nopen: o\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
 	printf("> ");
 	scanf("%c", &choice);
+	return choice;
 }
 
 
@@ -167,6 +168,39 @@ main (int argc, char ** argv) {
         panic("panic for input(buffer.c)");
     }
 	init_tablepool();
-    int tid = open_table(table_path);
-    test(tid);
+    utable_t tid;
+    //test(tid);
+
+	ukey64_t key;
+	ustring_t value = (ustring_t)malloc(sizeof(char)* 120);
+
+	while(1) {
+		while(getchar() != '\n');
+		switch(client()) {
+			case 'o':
+				scanf("%s", table_path);
+				tid = open_table(table_path);
+				break;
+			case 'i':
+				scanf("%ld %s", &key, value);
+				insert(tid, key, value);
+				break;
+			case 'd':
+				scanf("%ld", &key);
+				delete(tid, key); 
+				break;
+			case 'f':
+				scanf("%ld", &key);
+				find(tid, key, &value);
+				printf("find: %s\n", value);
+				break;
+			case 't':
+				test(tid);
+				break;
+			case 'p':
+				d_print_tree(tid);
+				break;
+		}
+	}
+
 }
