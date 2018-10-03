@@ -5,6 +5,7 @@
 #include "types.h"
 #include "pages.h"
 #include "tables.h"
+#include "inits.h"
 #include "disks.h"
 
 
@@ -17,7 +18,7 @@ init_tablepool() {
 	memset (tp.tids, 0, (NTID + 1) * sizeof(char));
 }
 
-int
+utable_t
 get_tid() {
 	//tids lock
 	for (int i = 1; i < NTID + 1; i++) {
@@ -74,7 +75,8 @@ open_table(char* path) {
 	int mid;
 	int high = tp.count - 1;
 	int low = 0;
-	int tid;
+	utable_t tid;
+	unumber_t size;
 	int compare;
 	int fd;
 	char* dir = "datas/";
@@ -99,6 +101,13 @@ open_table(char* path) {
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));
 		tp.count++;
+	
+		//for init_table
+		open_disk(tid);
+		size = disk_size(tid);
+		close_disk(tid);
+		if (size == 0) 
+			init_table(tid);
 		return 1;
 	}
 	while (low <= high) {
@@ -129,13 +138,15 @@ open_table(char* path) {
 //	memset(&(tp.tables[i + 1]), 0, sizeof(Table));
 	memcpy(&(tp.tables[mid]), temp, sizeof(Table));
 	tp.count++;
-
+	
 	//for init_table
 	open_disk(tid);
+	size = disk_size(tid);
 	close_disk(tid);
-
-
-	return tid;
+	if (size == 0) 
+		init_table(tid);
+	
+	return tid;	
 }
 
 int 
@@ -177,7 +188,7 @@ print_tp() {
 	}
 	printf(")\n");
 	for (int i = 0; i < tp.count; i++) {
-		printf("(i:%d,tid:%d,fd:%d, p:%s), ", i, tp.tables[i].tid,tp.tables[i].fd, tp.tables[i].name);
+		printf("(i:%d,tid:%ld,fd:%d, p:%s), ", i, tp.tables[i].tid,tp.tables[i].fd, tp.tables[i].name);
 	}
 	printf("\n\n");
 }

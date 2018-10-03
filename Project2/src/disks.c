@@ -14,7 +14,7 @@
 #include "disks.h"
 #include "inits.h"
 int
-open_disk(int tid) {
+open_disk(utable_t tid) {
         char* db_path;
         int fd;
         db_path = get_path(tid);
@@ -26,22 +26,24 @@ open_disk(int tid) {
 	}
 
 	put_fd(tid, fd);
-	
-	if( lseek(fd, 0, SEEK_END) == 0 ) {
-		close_disk(tid);
-		init_table(tid);
-		fd = open_disk(tid);
-	}
 	return fd; 
 }
 
+
 int
-close_disk(int tid) {
+close_disk(utable_t tid) {
 	int fd;
         fd = get_fd(tid);
         close(fd);
         put_fd(tid, FDCLOSE);
 
+}
+
+unumber_t
+disk_size(utable_t tid) {
+	int fd = get_fd(tid);
+	unumber_t ret = lseek(fd, 0, SEEK_END);
+	return ret;
 }
 
 //use not in buffer 
@@ -91,28 +93,24 @@ dealloc_page(utable_t tid, uoffset_t offset) {
 
 }
 
+//extend 시에 header만 write, read buffer 하고 나머지는 flush, load로 처리
 //expand_after alloc 
 void 
 extend_page(utable_t tid, int size ) {
     //이 함수 호출 이전에 expand lock 하고 ㄱㄱ 
-    FreePage first_free_page;
     HeaderPage* m_header = (HeaderPage*)malloc(sizeof(HeaderPage));
-    uoffset_t num_cur_pages;
-    
-    //read_buffer(tid, C_HeaderOffset, (Page*)m_header);
-	load_page(tid, HEADEROFFSET, (Page*)m_header);
-
-    num_cur_pages = m_header->number_of_pages;
-    
     FreePage* free_page = (FreePage*)malloc(sizeof(FreePage));
-    uoffset_t free_page_offset = size * PAGESIZE;
+    FreePage first_free_page;
+    uoffset_t num_cur_pages;
     uoffset_t expand_limit;
-    if(size == 1)
-        expand_limit = 8 * PAGESIZE;
-    else
-        expand_limit = (size * 2) * PAGESIZE;
-
+    
+    //read_buffer(tid, HEADEROFFSET, (Page*)m_header);
+	load_page(tid, HEADEROFFSET, (Page*)m_header);
+    num_cur_pages = m_header->number_of_pages;
+    uoffset_t free_page_offset = num_cur_pages * PAGESIZE;	
+	expand_limit = (size + num_cur_pages) * PAGESIZE;
     memset(free_page, '\0', PAGESIZE);
+
     for(; free_page_offset < expand_limit; free_page_offset += PAGESIZE) {
         free_page->next_free_page = free_page_offset - PAGESIZE;
         flush_page(tid, free_page_offset, (Page*)free_page);
@@ -126,6 +124,7 @@ extend_page(utable_t tid, int size ) {
     m_header->f_page_offset = (size + num_cur_pages - 1) * PAGESIZE;
     m_header->number_of_pages += size;
     m_header->number_of_free_pages += size;
+    //write_buffer(tid, HEADEROFFSET, (Page*)m_header);
     flush_page(tid, HEADEROFFSET, (Page*)m_header);
 }
 

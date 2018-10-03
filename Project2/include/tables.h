@@ -1,6 +1,6 @@
 
 typedef struct _Table {
-	int tid;
+	utable_t tid;
 	int fd;
 	char name[TABLENAME];
 } Table;

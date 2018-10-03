@@ -1,19 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "types.h"
 #include "params.h"
+#include "pages.h"
 #include "tables.h"
 #include "disks.h"
+//========================
+#include "utils.h"
 int main() {
 	init_tablepool();
 	char* path = "ddb";
 	int tid = open_table(path);
 
-	print_tp();
-	open_disk(tid);	
-	print_tp();
-	close_disk(tid);
-	print_tp();
-	open_disk(tid);	
-	print_tp();
-
+	d_free_page_ditector(tid);
 }
