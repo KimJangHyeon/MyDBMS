@@ -5,6 +5,11 @@
 #include "disks.h"
 #include "buffers.h"
 
+int 
+init_db(int num_buf) {
+		
+}
+
 void
 read_buffer(utable_t tid, uoffset_t offset, Page* page) {
 	load_page(tid, offset, page);

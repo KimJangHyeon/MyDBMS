@@ -30,7 +30,8 @@
 #define LRECORDSIZE		128
 //============= PERCENT ===============
 #define EXTENDPERCENT	0.20
-
+#define LRUCHECKGROUP	100
+#define HITPERCENT		0.70
 //============= SIGNAL ================
 #define TIDFULL			-1
 #define FDCLOSE			-1

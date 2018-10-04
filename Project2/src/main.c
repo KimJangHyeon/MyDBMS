@@ -20,19 +20,19 @@ int rsmalltest(utable_t);
 int endtest(utable_t);
 
 int (*testfunc[NTEST])(utable_t) = {
-    smalltest,
-    inserttest,
-    storetest,
-    rsmalltest,
+    //smalltest,
+    //inserttest,
+    //storetest,
+    //rsmalltest,
     reversetest,
     endtest,
 };
 
 char* testname[NTEST] = {
-    "smalltest",
-    "inserttest",
-    "storetest",
-    "rsmalltest",
+    //"smalltest",
+    //"inserttest",
+    //"storetest",
+    //"rsmalltest",
     "reversetest",
     "end test",
 };
@@ -44,6 +44,7 @@ int endtest(utable_t tid) {
 int rsmalltest(utable_t tid) {
     for (int i = 18; i >= 0; i--) {
         insert(tid, i, "aa");
+    	d_print_tree(tid);
     }
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
@@ -58,14 +59,17 @@ int rsmalltest(utable_t tid) {
 int inserttest(utable_t tid) {
     for (int i = 0; i < 18; i++) {
         insert(tid, i, "aa");
+    	d_print_tree(tid);
     }
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
     for (int i = 0; i < 18; i++) {
         delete(tid, i);
+    	d_print_tree(tid);
     }
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
+	exit(0);
     return 1;
 }
 
@@ -84,12 +88,12 @@ int smalltest(utable_t tid) {
     d_print_tree(tid);
     insert(tid, 7, "a");
     d_print_tree(tid);
-    //d_print_dpage(tid, 0, D_Header);
     delete(tid, 0);
+    d_print_tree(tid);
     delete(tid, 2);
-    //d_print_dpage(tid, 0, D_Header);
     d_print_tree(tid);
     insert(tid, 0, "a");
+    d_print_tree(tid);
     insert(tid, 2, "a");
     //d_print_dpage(tid, 0, D_Header);
     d_print_tree(tid);
@@ -115,6 +119,7 @@ int storetest(utable_t tid) {
 int reversetest(utable_t tid) {
     for(int i = LRECORD * 10 - 1; i >= 0; i--) {
         insert(tid, i, "a");
+    	d_print_tree(tid);
     }   
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
