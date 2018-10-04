@@ -3,3 +3,8 @@ typedef struct _RWLock {
 	bool wflag;
 	bool lock;
 }RWLock;
+
+void read_lock(RWLock*);
+void read_release(RWLock*);
+void write_lock(RWLock*);
+void write_release(RWLock*);

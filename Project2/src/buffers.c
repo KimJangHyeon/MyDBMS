@@ -2,6 +2,7 @@
 #include "types.h"
 #include "params.h"
 #include "pages.h"
+#include "lock.h"
 #include "disks.h"
 #include "buffers.h"
 
