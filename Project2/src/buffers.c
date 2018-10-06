@@ -8,10 +8,13 @@
 
 BufferPool* bp;
 
+
+
 int 
 init_db(int num_buf) {
 	bp = (BufferPool*)malloc(sizeof(BufferPool));
 	memset(bp, 0, sizeof(BufferPool));
+	bp->num_buf = num_buf;
 	bp->buffers = (Buffer*)malloc(sizeof(Buffer) * num_buf);
 	for (int i = 0; i < num_buf; i++) 
 		memset(&(bp->buffers[i]), 0, sizeof(Buffer));
@@ -28,4 +31,7 @@ write_buffer(utable_t tid, uoffset_t offset, Page* page) {
 	flush_page(tid, offset, page);
 }
 
+int 
+shutdown_db(void) {
 
+}
