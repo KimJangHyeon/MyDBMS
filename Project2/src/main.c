@@ -206,9 +206,5 @@ main (int argc, char ** argv) {
     }
 	init_tablepool();
 	utable_t tid = open_table(table_path);
-	printf("============\n");
-	insert(tid, 1, "a");
-	printf("============\n");
-	insert(tid, 2, "b");
-
+	test(tid);
 }
