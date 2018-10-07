@@ -13,7 +13,8 @@ typedef struct _ControlBlock {
 	utable_t tid;
 	uoffset_t off;
 	bool isDirty;
-	RWLock pin;
+	int pin;
+	RWLock rw;
 	bool ref;
 } ControlBlock;
 
