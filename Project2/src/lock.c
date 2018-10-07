@@ -42,3 +42,15 @@ write_release(RWLock* rw) {
 		exit(0);
 	}
 }
+
+int
+buffer_lock(FLock* lock, int state1, int state2) {
+
+}
+
+int 
+buffer_release(FLock* lock) {
+
+}
+
+
