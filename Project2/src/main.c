@@ -3,6 +3,7 @@
 #include "types.h"
 #include "params.h"
 #include "pages.h"
+#include "lock.h"
 #include "tables.h"
 #include "disks.h"
 #include "views.h"
@@ -213,7 +214,15 @@ main (int argc, char ** argv) {
 	IndexQueue* iq = (IndexQueue*)malloc(sizeof(IndexQueue));
 	init_indexqueue(iq, 10);
 	for (int i = 0; i < 11; i++) {
+		simple_lock(&(iq->lock));
 		enqueue_index(iq, i);
+		simple_release(&(iq->lock));
 	}
+	for (int i = 0; i < 11; i++) {
+		simple_lock(&(iq->lock));
+		printf("dequeue: %d\n", dequeue_index(iq));
+		simple_release(&(iq->lock));
+	}
+	
 
 }
