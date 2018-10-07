@@ -7,12 +7,7 @@
 #include "buffers.h"
 
 void
-read_buffer(utable_t tid, uoffset_t offset, Page* page, bool isForWrite) {
-	if(isForWrite) {
-		printf("%lu is for write\n", offset);
-	} else {
-		printf("%lu is for read\n", offset);
-	}
+read_buffer(utable_t tid, uoffset_t offset, Page* page) {
 	load_page(tid, offset, page);
 }
 

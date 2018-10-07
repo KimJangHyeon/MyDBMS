@@ -157,17 +157,8 @@ char client() {
 	return choice;
 }
 
-
-
-int
-main (int argc, char ** argv) {
+void client_loop() {
     char* table_path;
-    if(argc > 1 && argc < 3) {
-        table_path = argv[1];
-    } else {
-        panic("panic for input(buffer.c)");
-    }
-	init_tablepool();
     utable_t tid;
     //test(tid);
 
@@ -202,5 +193,22 @@ main (int argc, char ** argv) {
 				break;
 		}
 	}
+}
+
+
+int
+main (int argc, char ** argv) {
+    char* table_path;
+    if(argc > 1 && argc < 3) {
+        table_path = argv[1];
+    } else {
+        panic("panic for input(buffer.c)");
+    }
+	init_tablepool();
+	utable_t tid = open_table(table_path);
+	printf("============\n");
+	insert(tid, 1, "a");
+	printf("============\n");
+	insert(tid, 2, "b");
 
 }
