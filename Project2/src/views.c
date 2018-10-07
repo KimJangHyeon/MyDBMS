@@ -86,7 +86,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 	HeaderPage* hp = (HeaderPage*)malloc(sizeof(HeaderPage));
 	inter_page = (InternalPage*)malloc(sizeof(InternalPage));
 
-	read_buffer(tid, HEADEROFFSET, (Page*)hp);
+	read_buffer(tid, HEADEROFFSET, (Page*)hp, False);
 	uoffset_t new_offset = hp->r_page_offset;	
 	uoffset_t old_offset;
 	if(new_offset == 0) {
@@ -97,7 +97,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 
 
 	//get page
-	read_buffer(tid, new_offset, (Page*)inter_page);
+	read_buffer(tid, new_offset, (Page*)inter_page, False);
 	
 	while (!inter_page->header_top.isLeaf) {
 		i = 0;
@@ -109,9 +109,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 		old_offset = new_offset;
 		new_offset = inter_page->record[i - 1].offset;
 
-		//buffer_lock(new_offset);
-		//buffer_release(old_offset);
-		read_buffer(tid, new_offset, (Page*)inter_page);
+		read_buffer(tid, new_offset, (Page*)inter_page, False);
 	}
 	memcpy(leaf_page, (LeafPage*)inter_page, PAGESIZE);
 	free(inter_page);
@@ -164,8 +162,8 @@ insert_into_new_root(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 
 	
 	//lock???
-	read_buffer(tid, root_offset, (Page*)inter_page);
-	read_buffer(tid, HEADEROFFSET, (Page*)hp);
+	read_buffer(tid, root_offset, (Page*)inter_page, True);
+	read_buffer(tid, HEADEROFFSET, (Page*)hp, True);
 	inter_page->record[0].key = key_left;
 	inter_page->record[0].offset = left_offset;
 	inter_page->record[1].key = key_right;
@@ -246,7 +244,7 @@ insert_into_node_after_splitting(int left_index, utable_t tid, ukey64_t key, uof
 	//not sure =<
 	for (i = 0; i < new_node->header_top.num_keys; i++) {
 		//read lock
-		read_buffer(tid, new_node->record[i].offset, (Page*)child); 
+		read_buffer(tid, new_node->record[i].offset, (Page*)child, True); 
 		// change write lock
 		child->header_top.poffset = new_node_offset;
 		write_buffer(tid, new_node->record[i].offset, (Page*)child);
@@ -273,7 +271,7 @@ insert_into_parent(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 		insert_into_new_root(tid, key_left, key_right, left_offset, right_offset, left, right);
 		return;
 	}
-	read_buffer(tid, poffset, (Page*)parent);
+	read_buffer(tid, poffset, (Page*)parent, True);
 
 	left_index = get_left_index(left_offset, parent);
 	
@@ -359,7 +357,7 @@ get_neighbor_index(utable_t tid, uoffset_t offset, NodePage* knode) {
 	uoffset_t poffset;
 	InternalPage parent;
 
-	read_buffer(tid, knode->header_top.poffset, (Page*)&parent);
+	read_buffer(tid, knode->header_top.poffset, (Page*)&parent, False);
 
 	for (i = 0; i <= parent.header_top.num_keys; i++) {
 		if (parent.record[i].offset == offset)
@@ -423,7 +421,7 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 	}
 	if (root->header_top.isLeaf == False && root->header_top.num_keys > 1) {
 		toffset = ((InternalPage*)root)->record[0].offset;
-		read_buffer(tid, toffset, (Page*)&temp);
+		read_buffer(tid, toffset, (Page*)&temp, True);
 		write_buffer(tid, toffset, (Page*)&temp);
 		printf("adjust done(%d)\n", --adjust_count);
 		return;
@@ -432,8 +430,8 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 		new_offset = ((InternalPage*)root)->record[0].offset;
 		//buffer r lock
 		dealloc_page(tid, roffset);
-		read_buffer(tid, new_offset, (Page*)&new_root);
-		read_buffer(tid, HEADEROFFSET, (Page*)hp);
+		read_buffer(tid, new_offset, (Page*)&new_root, True);
+		read_buffer(tid, HEADEROFFSET, (Page*)hp, True);
 		//header root lock
 		//buffer w lock
 		hp->r_page_offset = new_offset;
@@ -444,7 +442,7 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 	else {
 		//header root lock
 		//buffer w lock
-		read_buffer(tid, HEADEROFFSET, (Page*)hp);
+		read_buffer(tid, HEADEROFFSET, (Page*)hp, True);
 		hp->r_page_offset = INITOFFSET;
 		write_buffer(tid, HEADEROFFSET, (Page*)hp);
 		dealloc_page(tid, roffset);
@@ -487,7 +485,7 @@ coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t ko
 		}
 		for (i = 0; i < ineighbor->header_top.num_keys; i++) {
 			toffset = ineighbor->record[i].offset;
-			read_buffer(tid, toffset, (Page*)temp);
+			read_buffer(tid, toffset, (Page*)temp, True);
 
 			temp->header_top.poffset = noffset;
 			write_buffer(tid, toffset, (Page*)temp);
@@ -506,7 +504,7 @@ coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t ko
 		lneighbor->sibling = lknode->sibling;
 	}
 	poffset = knode->header_top.poffset;
-	read_buffer(tid, poffset, (Page*)parent);
+	read_buffer(tid, poffset, (Page*)parent, False);
 	//neighbor->header_top.poffset = parent->header_top.poffset;
 	write_buffer(tid, noffset, (Page*)neighbor);
 	dealloc_page(tid, koffset);
@@ -542,7 +540,7 @@ redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t
 			memcpy(&(lnode->record[0]), &(lneighbor->record[lneighbor->header_top.num_keys - 1]), IRECORDSIZE);
 			memset(lneighbor->record[neighbor->header_top.num_keys - 1].value, 0, VALUESIZE);
 			poffset = lnode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
+			read_buffer(tid, poffset, (Page*)parent, True);
 			parent->record[++k_prime_index].key = lnode->record[0].key;
 		} else {
 
@@ -556,7 +554,7 @@ redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t
 			inode->record[0].offset = ineighbor->record[ineighbor->header_top.num_keys - 1].offset;
 			inode->record[1].key = k_prime;
 			toffset = inode->record[0].offset;
-			read_buffer(tid, toffset, (Page*)temp);
+			read_buffer(tid, toffset, (Page*)temp, True);
 		 	temp->header_top.poffset = offset;
 			//do write buffer
 			write_buffer(tid, toffset, (Page*)temp);
@@ -564,7 +562,7 @@ redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t
 			ineighbor->record[ineighbor->header_top.num_keys - 1].offset = 0;
 			//inode->record[0].key = k_prime;
 			poffset = inode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
+			read_buffer(tid, poffset, (Page*)parent, True);
 			parent->record[k_prime_index].key = ineighbor->record[neighbor->header_top.num_keys - 2].key;
 
 		}
@@ -577,7 +575,7 @@ redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t
 			
 			memcpy(&(lnode->record[lnode->header_top.num_keys]), &(lneighbor->record[0]), LRECORDSIZE);
 			poffset = lnode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
+			read_buffer(tid, poffset, (Page*)parent, True);
 			parent->record[k_prime_index+1].key = lneighbor->record[1].key;
 
 			for(i = 0; i < lneighbor->header_top.num_keys - 1; i++) 
@@ -589,11 +587,11 @@ redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t
 			
 			memcpy(&(inode->record[inode->header_top.num_keys]), &(ineighbor->record[0]), IRECORDSIZE);
 			toffset = inode->record[inode->header_top.num_keys].offset;
-			read_buffer(tid, toffset, (Page*)temp);
+			read_buffer(tid, toffset, (Page*)temp, True);
 			temp->header_top.poffset = offset;
 			write_buffer(tid, toffset, (Page*)temp);
 			poffset = inode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
+			read_buffer(tid, poffset, (Page*)parent, True);
 
 			parent->record[k_prime_index+1].key = ineighbor->record[1].key;
 
@@ -632,7 +630,7 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	uoffset_t noffset;
 	//read lock
 
-	read_buffer(tid, HEADEROFFSET, (Page*)hp);
+	read_buffer(tid, HEADEROFFSET, (Page*)hp, False);
 	uoffset_t roffset = hp->r_page_offset;
 	printf("delete entry start(%d)\n", ++entry_count);
 	remove_entry_from_node(tid, koffset, toffset, key, knode);
@@ -650,11 +648,11 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 		return;
 	}
 	neighbor_index = get_neighbor_index(tid, koffset, knode);
-	read_buffer(tid, knode->header_top.poffset, (Page*)parent);
+	read_buffer(tid, knode->header_top.poffset, (Page*)parent, False);
 	k_prime_index = neighbor_index == -1 ? 0 : neighbor_index;
 	k_prime = parent->record[k_prime_index + 1].key;
 	noffset = neighbor_index == -1 ? parent->record[1].offset : parent->record[neighbor_index].offset;
-	read_buffer(tid, noffset, (Page*)neighbor);
+	read_buffer(tid, noffset, (Page*)neighbor, False);
 	capacity = knode->header_top.isLeaf ? LRECORD - 1 : IRECORD;
 	if (neighbor->header_top.num_keys + knode->header_top.num_keys <= capacity) {
 		coalesce_nodes(tid, neighbor_index, k_prime, koffset, noffset, knode, neighbor);
@@ -698,7 +696,7 @@ insert(utable_t tid, ukey64_t key, ustring_t value) {
 	LeafPage* leaf_page = (LeafPage*)malloc(sizeof(LeafPage));
 	HeaderPage* hp = (HeaderPage*)malloc(sizeof(HeaderPage));
 
-	read_buffer(tid, HEADEROFFSET, (Page*)hp);
+	read_buffer(tid, HEADEROFFSET, (Page*)hp, False);
 
 	node_offset = hp->r_page_offset;
 	find(tid, key, &str);
@@ -712,7 +710,7 @@ insert(utable_t tid, ukey64_t key, ustring_t value) {
 	if (node_offset == 0) {
 		node_offset = init_root(tid, True);
 		
-		read_buffer(tid, node_offset, (Page*)leaf_page);
+		read_buffer(tid, node_offset, (Page*)leaf_page, True);
 		leaf_page->record[0].key = key;
 		memcpy(leaf_page->record[0].value, value, VALUESIZE);
 		leaf_page->header_top.num_keys++;
