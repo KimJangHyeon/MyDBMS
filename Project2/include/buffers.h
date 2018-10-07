@@ -1,22 +1,15 @@
 
-typedef struct _BufferPool {
-	int clock;
-	IndexQueue* queue;
-	int num_buf;
-	Buffer* buffers;
-} BufferPool;
-
 enum State {
 	Init, Empty, Loading, Running, Cleaning
 };
 
-typedef _FLock {
-	State state;
+typedef struct _FLock {
+	enum State state;
 	utable_t fetch_tid;
 	uoffset_t fetch_off;
 } FLock;
 
-typedef _ControlBlock {
+typedef struct _ControlBlock {
 	utable_t tid;
 	uoffset_t off;
 	bool isDirty;
@@ -29,6 +22,14 @@ typedef struct _Buffer {
 	ControlBlock cb;
 	Page* frame;
 } Buffer;
+
+
+typedef struct _BufferPool {
+	int clock;
+	IndexQueue* queue;
+	int num_buf;
+	Buffer* buffers;
+} BufferPool;
 
 void read_buffer(utable_t, uoffset_t, Page*);
 void write_buffer(utable_t, uoffset_t, Page*);

@@ -3,7 +3,9 @@
 #include "types.h"
 #include "params.h"
 #include "pages.h"
+#include "lock.h"
 #include "disks.h"
+#include "queue.h"
 #include "buffers.h"
 
 void
