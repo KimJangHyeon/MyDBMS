@@ -111,7 +111,9 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 
 		read_buffer(tid, new_offset, (Page*)inter_page, False);
 	}
-	memcpy(leaf_page, (LeafPage*)inter_page, PAGESIZE);
+	read_buffer(tid, new_offset, (Page*)leaf_page, True);
+
+	//memcpy(leaf_page, (LeafPage*)inter_page, PAGESIZE);
 	free(inter_page);
 	return new_offset;
 }
