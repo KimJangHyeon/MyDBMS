@@ -17,9 +17,9 @@ init_db (int num_buf) {
 	bp->clock = 0;
 	bp->queue = (IndexQueue*)malloc(sizeof(IndexQueue));
 	init_indexqueue(qp->queue, num_buf);
+	bp->buffers = (Buffer*)malloc(sizeof(Buffer) * num_buf);
 
 	//========init bp done ===============
-
 	for (int i = 0; i < num_buf; i++) {
 
 	}
