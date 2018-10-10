@@ -199,18 +199,19 @@ void client_loop() {
 
 int
 main (int argc, char ** argv) {
-	/*
+	
     char* table_path;
     if(argc > 1 && argc < 3) {
         table_path = argv[1];
     } else {
         panic("panic for input(buffer.c)");
     }
+	/*
 	init_tablepool();
 	utable_t tid = open_table(table_path);
 	test(tid);
 	*/
-	
+/*	
 	IndexQueue* iq = (IndexQueue*)malloc(sizeof(IndexQueue));
 	init_indexqueue(iq, 10);
 	for (int i = 0; i < 11; i++) {
@@ -223,6 +224,9 @@ main (int argc, char ** argv) {
 		printf("dequeue: %d\n", dequeue_index(iq));
 		simple_release(&(iq->lock));
 	}
-	
+*/
+	init_tablepool();
+	utable_t tid = open_table(table_path);
+	test(tid);
 
 }

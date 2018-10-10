@@ -7,6 +7,8 @@
 #include "types.h"
 #include "pages.h"
 #include "disks.h"
+#include "lock.h"
+#include "queue.h"
 #include "buffers.h"
 #include "views.h"
 #include "inits.h"
@@ -455,6 +457,7 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 void 
 coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t koffset,
 		uoffset_t noffset, NodePage* knode, NodePage* neighbor) {
+/*
 	int i, j, neighbor_insertion_index, n_end;
 	uoffset_t toffset;
 	uoffset_t poffset = 0;
@@ -515,11 +518,13 @@ coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t ko
 
 	delete_entry(tid, poffset, koffset, k_prime, parent);
 	printf("coalesce done(%d)\n", --coal_count);
+*/
 }
 
 void 
 redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t k_prime, 
 		uoffset_t offset, uoffset_t noffset, NodePage* node, NodePage* neighbor) {
+/*
 	int i;
 	uoffset_t poffset = 0;
 	uoffset_t toffset;
@@ -617,7 +622,9 @@ redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t
 	
 	//free
 	printf("redistribute done(%d)\n", --redis_count);
+*/
 }
+
 
 
 void 
