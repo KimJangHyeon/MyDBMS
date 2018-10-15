@@ -663,6 +663,7 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	noffset = neighbor_index == -1 ? parent->record[1].offset : parent->record[neighbor_index].offset;
 	read_buffer(tid, noffset, (Page*)neighbor);
 	capacity = knode->header_top.isLeaf ? LRECORD - 1 : IRECORD;
+	// change if( knode->header_top.num_keys == 0 ) --> no need neighbor
 	if (neighbor->header_top.num_keys + knode->header_top.num_keys <= capacity) {
 		coalesce_nodes(tid, neighbor_index, k_prime, koffset, noffset, knode, neighbor);
 	} else { 
