@@ -64,6 +64,7 @@ int inserttest(utable_t tid) {
     d_print_tree(tid);
     for (int i = 0; i < 18; i++) {
         delete(tid, i);
+    	d_print_tree(tid);
     }
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
@@ -88,6 +89,7 @@ int smalltest(utable_t tid) {
     //d_print_dpage(tid, 0, D_Header);
     delete(tid, 0);
     delete(tid, 2);
+    delete(tid, 3);
     //d_print_dpage(tid, 0, D_Header);
     d_print_tree(tid);
     insert(tid, 0, "a");

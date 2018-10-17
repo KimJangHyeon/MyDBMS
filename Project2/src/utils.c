@@ -245,7 +245,7 @@ d_print_tree(utable_t tid) {
 
         load_page(tid, page_offset, (Page*)&nd);
         if(nd.header_top.isLeaf) {
-            printf("(%lu, %lu, %lu) ", page_offset, nd.header_top.poffset, ((LeafPage*)&nd)->sibling);
+            printf("(m:%lu, p:%lu, s:%lu) ", page_offset, nd.header_top.poffset, ((LeafPage*)&nd)->sibling);
             memcpy(&lp, &nd, PAGESIZE);
             for(int i = 0; i < lp.header_top.num_keys; i++) {
                 //printf("(%lu, /*%s)", lp.record[i].key, lp.record[i].value);
@@ -254,7 +254,7 @@ d_print_tree(utable_t tid) {
             printf("| ");
         }
         else {
-            printf("(%lu, %lu) ", page_offset, nd.header_top.poffset);
+            printf("(m:%lu, p:%lu) ", page_offset, nd.header_top.poffset);
             memcpy(&ip, &nd, PAGESIZE);
             for(int i = 0; i < ip.header_top.num_keys; i++) {
                 //printf("(%lu, %lu), ", ip.record[i].key, ip.record[i].offset);
