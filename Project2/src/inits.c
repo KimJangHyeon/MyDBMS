@@ -4,6 +4,8 @@
 
 #include "types.h"
 #include "params.h"
+#include "lock.h"
+#include "queue.h"
 #include "pages.h"
 #include "disks.h"
 #include "buffers.h"

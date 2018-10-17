@@ -393,11 +393,8 @@ remove_entry_from_node(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey6
 		i = 1;
 		while ((i != kinter->header_top.num_keys) && (kinter->record[i].key != key))
 			i++;
-		if (i == kinter->header_top.num_keys) {
+		if (i == kinter->header_top.num_keys) 
 			i = 0;
-			printf("kiner->header_top.num_keys\n");
-		}
-		printf("index(i): %d\n", i);
 		for (++i; i < kinter->header_top.num_keys; i++) 
 			kinter->record[i - 1].key = kinter->record[i].key;
 		
@@ -421,16 +418,16 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 	uoffset_t new_offset;
 	uoffset_t toffset;
 
-	printf("adjust start(%d)\n", ++adjust_count);
+	//printf("adjust start(%d)\n", ++adjust_count);
 	if (root->header_top.isLeaf == True && root->header_top.num_keys > 0) {
-		printf("adjust done(%d)\n", --adjust_count);
+		//printf("adjust done(%d)\n", --adjust_count);
 		return;
 	}
 	if (root->header_top.isLeaf == False && root->header_top.num_keys > 1) {
 		toffset = ((InternalPage*)root)->record[0].offset;
 		read_buffer(tid, toffset, (Page*)&temp);
 		write_buffer(tid, toffset, (Page*)&temp);
-		printf("adjust done(%d)\n", --adjust_count);
+		//printf("adjust done(%d)\n", --adjust_count);
 		return;
 	}
 	if (!(root->header_top.isLeaf)) {
@@ -454,7 +451,7 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 		write_buffer(tid, HEADEROFFSET, (Page*)hp);
 		dealloc_page(tid, roffset);
 	}
-	printf("adjust done(%d)\n", --adjust_count);
+	//printf("adjust done(%d)\n", --adjust_count);
 }
 
 void 
@@ -467,7 +464,7 @@ coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t ko
 	NodePage* change;
 	NodePage* temp = (NodePage*)malloc(sizeof(NodePage));
 	NodePage* parent = (NodePage*)malloc(sizeof(NodePage));
-	printf("coalesce start(%d)\n", ++coal_count);
+	//printf("coalesce start(%d)\n", ++coal_count);
 	if (neighbor_index == -1) {
 		change = knode;
 		knode = neighbor;
@@ -520,115 +517,9 @@ coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t ko
 	dealloc_page(tid, koffset);
 	
 
-	printf("k_prime: %lu\n", k_prime);
 	delete_entry(tid, poffset, koffset, k_prime, parent);
-	printf("coalesce done(%d)\n", --coal_count);
+	//printf("coalesce done(%d)\n", --coal_count);
 }
-
-void 
-redistribute_nodes(utable_t tid, int neighbor_index, int k_prime_index, ukey64_t k_prime, 
-		uoffset_t offset, uoffset_t noffset, NodePage* node, NodePage* neighbor) {
-/*
-	int i;
-	uoffset_t poffset = 0;
-	uoffset_t toffset;
-	InternalPage* parent = (InternalPage*)malloc(sizeof(InternalPage));
-	NodePage* temp = (NodePage*)malloc(sizeof(NodePage));
-	//case leaf
-	LeafPage* lnode = (LeafPage*)node;
-	LeafPage* lneighbor = (LeafPage*)neighbor;
-	//case internal 
-	InternalPage* inode = (InternalPage*)node;
-	InternalPage* ineighbor = (InternalPage*)neighbor;
-	printf("redistribute start(%d)\n", ++redis_count);
-	if (neighbor_index != -1) {
-		if(node->header_top.isLeaf) {
-			lnode = (LeafPage*)node;
-			lneighbor = (LeafPage*)neighbor;
-			
-			for(i = lnode->header_top.num_keys; i > 0; i--) 
-				memcpy(&(lnode->record[i]), &(lnode->record[i - 1]), LRECORDSIZE);
-			memcpy(&(lnode->record[0]), &(lneighbor->record[lneighbor->header_top.num_keys - 1]), IRECORDSIZE);
-			memset(lneighbor->record[neighbor->header_top.num_keys - 1].value, 0, VALUESIZE);
-			poffset = lnode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
-			parent->record[++k_prime_index].key = lnode->record[0].key;
-		} else {
-
-			inode = (InternalPage*)node;
-			ineighbor = (InternalPage*)neighbor;
-
-			//make node
-			for(i = node->header_top.num_keys; i > 1; i--) 
-				memcpy(&(inode->record[i]), &(inode->record[i - 1]), IRECORDSIZE);
-			inode->record[1].offset = inode->record[0].offset;
-			inode->record[0].offset = ineighbor->record[ineighbor->header_top.num_keys - 1].offset;
-			inode->record[1].key = k_prime;
-			toffset = inode->record[0].offset;
-			read_buffer(tid, toffset, (Page*)temp);
-		 	temp->header_top.poffset = offset;
-			//do write buffer
-			write_buffer(tid, toffset, (Page*)temp);
-
-			ineighbor->record[ineighbor->header_top.num_keys - 1].offset = 0;
-			//inode->record[0].key = k_prime;
-			poffset = inode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
-			parent->record[k_prime_index].key = ineighbor->record[neighbor->header_top.num_keys - 2].key;
-
-		}
-	}
-	
-	else {
-		if (node->header_top.isLeaf) {
-			lnode = (LeafPage*)node;
-			lneighbor = (LeafPage*)neighbor;
-			
-			memcpy(&(lnode->record[lnode->header_top.num_keys]), &(lneighbor->record[0]), LRECORDSIZE);
-			poffset = lnode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
-			parent->record[k_prime_index+1].key = lneighbor->record[1].key;
-
-			for(i = 0; i < lneighbor->header_top.num_keys - 1; i++) 
-				memcpy(&(lneighbor->record[i]), &(lneighbor->record[i + 1]), LRECORDSIZE);
-		} 
-		else {
-			inode = (InternalPage*)node;
-			ineighbor = (InternalPage*)neighbor;
-			
-			memcpy(&(inode->record[inode->header_top.num_keys]), &(ineighbor->record[0]), IRECORDSIZE);
-			toffset = inode->record[inode->header_top.num_keys].offset;
-			read_buffer(tid, toffset, (Page*)temp);
-			temp->header_top.poffset = offset;
-			write_buffer(tid, toffset, (Page*)temp);
-			poffset = inode->header_top.poffset;
-			read_buffer(tid, poffset, (Page*)parent);
-
-			parent->record[k_prime_index+1].key = ineighbor->record[1].key;
-
-			for (i = 0; i < ineighbor->header_top.num_keys - 1; i++) {
-				memcpy(&(ineighbor->record[i]), &(ineighbor->record[i + 1]), IRECORDSIZE);
-			}
-
-		}
-	}
-
-	node->header_top.num_keys++;
-	neighbor->header_top.num_keys--;
-
-	//node write
-	write_buffer(tid, offset, (Page*)node);
-	//neighbor write
-	write_buffer(tid, noffset, (Page*)neighbor);
-	//parent write
-	if(poffset != 0) 
-		write_buffer(tid, poffset, (Page*)parent);
-	
-	//free
-	printf("redistribute done(%d)\n", --redis_count);
-*/
-}
-
 
 
 void 
@@ -645,11 +536,11 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 
 	read_buffer(tid, HEADEROFFSET, (Page*)hp);
 	uoffset_t roffset = hp->r_page_offset;
-	printf("delete entry start(%d)\n", ++entry_count);
+	//printf("delete entry start(%d)\n", ++entry_count);
 	remove_entry_from_node(tid, koffset, toffset, key, knode);
 	if (knode->header_top.poffset == 0) {
 		adjust_root(tid, roffset, knode);
-		printf("delete entry done(%d)\n", --entry_count);
+		//printf("delete entry done(%d)\n", --entry_count);
 		return;
 	}
 
@@ -657,7 +548,7 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 
 	if (knode->header_top.num_keys >= min_keys) {
 		write_buffer(tid, koffset, (Page*)knode);
-		printf("delete entry done(%d)\n", --entry_count);
+		//printf("delete entry done(%d)\n", --entry_count);
 		return;
 	}
 	neighbor_index = get_neighbor_index(tid, koffset, knode);
@@ -674,7 +565,7 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	} 
 	free(neighbor);
 	free(parent);
-	printf("delete entry done(%d)\n", --entry_count);
+	//printf("delete entry done(%d)\n", --entry_count);
 }
 
 void

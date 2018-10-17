@@ -8,6 +8,8 @@
 #include <string.h>
 #include "params.h"
 #include "types.h"
+#include "lock.h"
+#include "queue.h"
 #include "pages.h"
 #include "tables.h" 
 #include "utils.h"

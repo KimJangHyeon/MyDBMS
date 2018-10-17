@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include "types.h"
 #include "params.h"
@@ -16,7 +17,7 @@ init_db (int num_buf) {
 	bp->num_buf = num_buf;
 	bp->clock = 0;
 	bp->queue = (IndexQueue*)malloc(sizeof(IndexQueue));
-	init_indexqueue(qp->queue, num_buf);
+	init_indexqueue(bp->queue, num_buf);
 	bp->buffers = (Buffer*)malloc(sizeof(Buffer) * num_buf);
 
 	//========init bp done ===============
