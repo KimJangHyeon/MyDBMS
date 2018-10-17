@@ -373,9 +373,6 @@ void
 remove_entry_from_node(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, NodePage* knode) {
 	int i, num_keys;
 	int record_size;
-	printf("welcome remove entry node!\n");
-	printf("before page\n");
-	d_print_mpage(tid, (Page*)knode, 2);
 
 	i = 0;
 	if(knode->header_top.isLeaf) {
@@ -412,7 +409,6 @@ remove_entry_from_node(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey6
 		
 		for (i = (--kinter->header_top.num_keys); i < inter_order; i++)
 			memset(&(kinter->record[i]), 0, IRECORDSIZE);
-		d_print_mpage(tid, (Page*)kinter, 2);
 		write_buffer(tid, koffset, (Page*)kinter);
 	}
 }
@@ -651,7 +647,6 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	uoffset_t roffset = hp->r_page_offset;
 	printf("delete entry start(%d)\n", ++entry_count);
 	remove_entry_from_node(tid, koffset, toffset, key, knode);
-	printf("num_keys: %d\n", knode->header_top.num_keys);
 	if (knode->header_top.poffset == 0) {
 		adjust_root(tid, roffset, knode);
 		printf("delete entry done(%d)\n", --entry_count);
@@ -673,11 +668,10 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	read_buffer(tid, noffset, (Page*)neighbor);
 	capacity = knode->header_top.isLeaf ? LRECORD - 1 : IRECORD;
 	// change if( knode->header_top.num_keys == 0 ) --> no need neighbor
-	if (knode->header_top.num_keys == 0) {
+	if ((knode->header_top.num_keys == 0 && knode->header_top.isLeaf == 1)
+			|| (knode->header_top.num_keys == 1 && knode->header_top.isLeaf == 0)) {
 		coalesce_nodes(tid, neighbor_index, k_prime, koffset, noffset, knode, neighbor);
-	} else { 
-		redistribute_nodes(tid, neighbor_index, k_prime_index, k_prime, koffset, noffset, knode, neighbor);
-	}
+	} 
 	free(neighbor);
 	free(parent);
 	printf("delete entry done(%d)\n", --entry_count);
