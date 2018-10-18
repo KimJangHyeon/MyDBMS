@@ -3,6 +3,8 @@ typedef struct _Table {
 	utable_t tid;
 	int fd;
 	char name[TABLENAME];
+	pthread_mutex_t lock;
+	bool extend;
 } Table;
 
 typedef struct _TablePool {

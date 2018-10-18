@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include "params.h"
 #include "types.h"
 #include "pages.h"
@@ -30,6 +31,16 @@ get_tid() {
 		}
 	}
 	return TIDFULL;
+}
+
+
+int
+tid_lock(utable_t tid, bool isExtend) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) {
+				
+		}
+	}
 }
 
 char*
@@ -96,7 +107,7 @@ open_table(char* path) {
 	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	temp->tid = tid;
 	temp->fd = FDCLOSE;
-
+//	temp->lock = PTHREAD_MUTEX_INITIALIZER;
 
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));

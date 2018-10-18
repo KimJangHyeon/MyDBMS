@@ -3,6 +3,7 @@
 #include <stdbool.h> 
 #include "lock.h" 
 
+
 void
 simple_lock(bool* lock) {
 	while(!__sync_bool_compare_and_swap(lock, 0, 1));
