@@ -8,8 +8,8 @@
 #define TABLENAME		32
 #define NTABLE			10
 #define NTID			10
-#define LRECORD			4//_31
-#define IRECORD			4//_248
+#define LRECORD			31
+#define IRECORD			248
 #define FREEINIT		7
 
 //============= OFFSET ================

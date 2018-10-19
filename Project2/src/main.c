@@ -117,14 +117,15 @@ int storetest(utable_t tid) {
 
 
 int reversetest(utable_t tid) {
-    for(int i = LRECORD * 10 - 1; i >= 0; i--) {
+    for(int i = LRECORD * 10 - 1; i >= 230; i--) {
         insert(tid, i, "a");
+    	d_print_tree(tid);
     }   
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
     for(int i = LRECORD * 10 - 1; i >= 0; i--) {
         delete(tid, i); 
-        d_print_tree(tid);
+    //    d_print_tree(tid);
     }   
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
@@ -231,6 +232,6 @@ main (int argc, char ** argv) {
 	init_threads();
 	init_tablepool();
 	utable_t tid = open_table(table_path);
-	test(tid);
 
+	reversetest(tid);
 }
