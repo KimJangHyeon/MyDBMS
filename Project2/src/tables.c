@@ -33,13 +33,38 @@ get_tid() {
 	return TIDFULL;
 }
 
-
-int
-tid_lock(utable_t tid, bool isExtend) {
+bool
+get_isExtend(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) {
 		if (tp.tables[i].tid == tid) {
-				
+			return tp.tables[i].extend;
 		}
+	}
+}
+
+int
+disk_lock(utable_t tid, bool isExtend) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) {
+				if (isExtend) {
+					if (__sync_bool_compare_and_swap(&(tp.tables[i].extend), 0, 1))
+						return -1;
+				}
+				pthread_mutex_lock(&(tp.tables[i].lock));
+				return 0;
+		}
+	}
+}
+
+int 
+disk_release(utable_t tid, bool isExtend) {
+	for (int i = 0; i < tp.count; i++) {
+		if (__sync_bool_compare_and_swap(&(tp.tables[i].extend), 1, 0)) {
+			//err
+			printf("extend release errr!!\n(%d)", tp.tables[i].extend);
+			exit(0);
+		}
+		pthread_mutex_unlock(&(tp.tables[i].lock));
 	}
 }
 
@@ -107,7 +132,8 @@ open_table(char* path) {
 	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	temp->tid = tid;
 	temp->fd = FDCLOSE;
-//	temp->lock = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_init(&(temp->lock), NULL);
+	temp->extend = 0;
 
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));

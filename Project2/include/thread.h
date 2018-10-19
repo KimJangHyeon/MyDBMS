@@ -2,7 +2,7 @@
 typedef struct _EThread {
 	pthread_t threads[NETHREAD];
 	pthread_mutex_t mutex[NETHREAD];
-	pthread_cond_t cond;
+	pthread_cond_t cond[NETHREAD];
 	bool lock;
 	//buf
 	utable_t tids[NETHREAD];

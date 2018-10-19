@@ -15,19 +15,19 @@
 #include "thread.h"
 
 //called open_table
-ThreadPool tp;
+ThreadPool thp;
 
 void
 init_threads() {
     for (int i = 0; i < NETHREAD; i++) {
-        tp.ethread.tids[i] = 0;
-        tp.ethread.sizes[i] = -1;
-		printf("sz: %d\n", tp.ethread.sizes[i]);
-        pthread_mutex_init(&(tp.ethread.mutex[i]), NULL);
+        thp.ethread.tids[i] = 0;
+        thp.ethread.sizes[i] = -1;
+		printf("sz: %d\n", thp.ethread.sizes[i]);
+        pthread_mutex_init(&(thp.ethread.mutex[i]), NULL);
+    	pthread_cond_init(&(thp.ethread.cond[i]), NULL);
     }   
-    pthread_cond_init(&(tp.ethread.cond), NULL);
     for (int i = 0; i < NETHREAD; i++) {
-        pthread_create(&tp.ethread.threads[i], NULL, extend_page, (void*)i);
+        pthread_create(&thp.ethread.threads[i], NULL, extend_page, (void*)i);
     }   
 }
 

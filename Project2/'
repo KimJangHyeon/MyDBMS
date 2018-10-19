@@ -27,15 +27,14 @@ open_disk(utable_t tid) {
 	char* db_path;
 	int fd;
 	db_path = get_path(tid);
-	disk_lock(tid, 0);
-	printf("??\n");
+
 	if((fd = open(db_path, O_CREAT | O_RDWR, 0777)) == -1) {
 		printf("path: %s\n", db_path);
         	fprintf(stderr, "Write error: %s\n", strerror(errno));
         	panic("(disk.c)open file error");
 		return -1;
 	}
-	printf("??\n");
+
 	put_fd(tid, fd);
 	return fd; 
 }
@@ -47,7 +46,7 @@ close_disk(utable_t tid) {
         fd = get_fd(tid);
         close(fd);
         put_fd(tid, FDCLOSE);
-	disk_release(tid, 0);
+
 }
 
 unumber_t
@@ -81,9 +80,7 @@ void
 load_page(utable_t tid, uoffset_t offset, Page* page) {
         int size;
         int fd;
-		printf("before open\n");
         open_disk(tid);
-		printf("load after open\n");
         fd = get_fd(tid);
         if((size = pread(fd, page, PAGESIZE, offset)) == -1) {
                 printf("READ ERR: %s\n", strerror(errno));
@@ -108,8 +105,7 @@ alloc_page(utable_t tid) {
 
 	//if free page 0
 	while (m_header->number_of_free_pages == 0) {
-		printf("WARNING: free pages are 0\n");
-        extend_call(tid, cur_page_num);
+		//printf("WARNING: free pages are 0\n");
 		read_buffer(tid, HEADEROFFSET, (Page*)m_header);
 	}
     
@@ -164,16 +160,14 @@ extend_page(void* arg ) {
 
 	while(1) {
 		pthread_mutex_lock(&(thp.ethread.mutex[(int)arg]));
-		pthread_cond_wait(&(thp.ethread.cond[(int)arg]), &(thp.ethread.mutex[(int)arg]));
+		pthread_cond_wait(&(thp.ethread.cond), &(thp.ethread.mutex[(int)arg]));
 		pthread_mutex_unlock(&(thp.ethread.mutex[(int)arg]));
-		if (disk_lock(tid, 1) == -1) {
+		if (thp.ethread.sizes[(int)arg] == -1) 
 			continue;
-		}
-		printf("extend start\n");
+
 		//===================================
     	read_buffer(tid, HEADEROFFSET, (Page*)m_header);
     	num_cur_pages = m_header->number_of_pages;
-		fprintf(stderr, "num cur pages: %ld\n", num_cur_pages);
     	uoffset_t free_page_offset = num_cur_pages * PAGESIZE;	
 		expand_limit = (size + num_cur_pages) * PAGESIZE;
     	memset(free_page, '\0', PAGESIZE);
@@ -192,8 +186,6 @@ extend_page(void* arg ) {
     	m_header->number_of_pages += size;
     	m_header->number_of_free_pages += size;
     	write_buffer(tid, HEADEROFFSET, (Page*)m_header);
-		printf("before release\n");
-		disk_release(tid, 1);
 		printf("extend thread done\n");
 		//===================================
 	}
