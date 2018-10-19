@@ -113,7 +113,7 @@ d_print_mnode(NodePage np) {
                 printf("is leaf: %d\n", lp.header_top.isLeaf);
                 printf("num key: %d\n", lp.header_top.num_keys);
                 printf("sibling: %ld\n", lp.sibling);
-                for( int i = 0; i < lp.header_top.num_keys; i++) {
+                for( int i = 0; i <= lp.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", lp.record[i].key);
                         printf("value: %s\n", (lp.record[i].value));
@@ -125,7 +125,7 @@ d_print_mnode(NodePage np) {
                 printf("poffset: %lu \n", ip.header_top.poffset);
                 printf("is leaf: %d\n", ip.header_top.isLeaf);
                 printf("num key: %d\n", ip.header_top.num_keys);
-                for( int i = 0; i < ip.header_top.num_keys; i++) {
+                for( int i = 0; i <= ip.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", ip.record[i].key);
                         printf("value: %ld\n", ip.record[i].offset);
