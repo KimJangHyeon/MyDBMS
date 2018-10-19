@@ -7,7 +7,6 @@
 #include "tables.h"
 #include "disks.h"
 #include "views.h"
-#include "inits.h"
 //========================
 #include "utils.h"
 #include "queue.h"
@@ -117,15 +116,14 @@ int storetest(utable_t tid) {
 
 
 int reversetest(utable_t tid) {
-    for(int i = LRECORD * 10 - 1; i >= 230; i--) {
+    for(int i = LRECORD * 10 - 1; i >= 0; i--) {
         insert(tid, i, "a");
-    	d_print_tree(tid);
-    }   
+    }  
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
     for(int i = LRECORD * 10 - 1; i >= 0; i--) {
         delete(tid, i); 
-    //    d_print_tree(tid);
+        d_print_tree(tid);
     }   
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
@@ -156,27 +154,25 @@ void test(utable_t tid) {
 
 char client() {
 	char choice;
-	printf("*****************\nopen: o\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
+	printf("****************\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
 	printf("> ");
 	scanf("%c", &choice);
 	return choice;
 }
 
-void client_loop() {
+void client_loop(utable_t tid) {
     char* table_path;
-    utable_t tid;
     //test(tid);
 
 	ukey64_t key;
 	ustring_t value = (ustring_t)malloc(sizeof(char)* 120);
 
 	while(1) {
-		while(getchar() != '\n');
 		switch(client()) {
-			case 'o':
-				scanf("%s", table_path);
-				tid = open_table(table_path);
-				break;
+			//case 'o':
+			//	scanf("%s", table_path);
+			//	tid = open_table(table_path);
+			//	break;
 			case 'i':
 				scanf("%ld %s", &key, value);
 				insert(tid, key, value);
@@ -197,6 +193,7 @@ void client_loop() {
 				d_print_tree(tid);
 				break;
 		}
+		while(getchar() != '\n');
 	}
 }
 
@@ -229,9 +226,8 @@ main (int argc, char ** argv) {
 		simple_release(&(iq->lock));
 	}
 */
-	init_threads();
 	init_tablepool();
 	utable_t tid = open_table(table_path);
-
-	reversetest(tid);
+	client_loop(tid);
+	//test(tid);
 }

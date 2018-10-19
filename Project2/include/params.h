@@ -36,8 +36,3 @@
 #define FDCLOSE			-1
 #define True			1
 #define False			0
-#define EXTENDFAIL		-1
-
-//============= THREAD ================
-#define NETHREAD		5
-

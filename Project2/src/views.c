@@ -187,19 +187,25 @@ insert_into_new_root(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 void
 insert_into_node(utable_t tid, uoffset_t poffset, int left_index, ukey64_t key, uoffset_t right_offset, InternalPage* parent) {
 	int i;
-	printf("kk\n");
-	d_print_mpage(tid, (Page*)parent, 2);
-	for (i = parent->header_top.num_keys + 1; i > left_index + 1; i--) {
-		printf("%ld -> %ld\n", parent->record[i].key, parent->record[i-1].key);
-		memcpy(&(parent->record[i]), &(parent->record[i - 1]), LRECORDSIZE);
+	//d_print_mpage(tid, (Page*)parent, 2);
+	//printf("num key: %d\n", parent->header_top.num_keys);
+	for (i = parent->header_top.num_keys; i > left_index + 1; i--) {
+		//printf("[%d]\n", i);
+		//LRECORDSIZE -> IRECORDSIZE case nanum
+		if ( parent->header_top.isLeaf)
+			memcpy(&(parent->record[i]), &(parent->record[i - 1]), LRECORDSIZE);
+		else 
+			memcpy(&(parent->record[i]), &(parent->record[i - 1]), IRECORDSIZE);
+			
+		//d_print_mpage(tid, (Page*)parent, 2);
 	}
 	parent->header_top.num_keys++;
-	d_print_mpage(tid, (Page*)parent, 2);
+	//d_print_mpage(tid, (Page*)parent, 2);
 	parent->record[left_index + 1].offset = right_offset;
 	parent->record[left_index + 1].key = key;
 
-	d_print_mpage(tid, (Page*)parent, 2);
 
+	//d_print_mpage(tid, (Page*)parent, 2);
 	write_buffer(tid, poffset, (Page*)parent);
 	return;
 }
@@ -277,19 +283,17 @@ insert_into_parent(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 	//parent lock은 이걸 호출하는 함수에서 처음 걸어준다. 	
 	//parent lock ==> write
 	if(poffset == 0) {
-	printf("here1!\n");	
 		insert_into_new_root(tid, key_left, key_right, left_offset, right_offset, left, right);
 		return;
 	}
 	read_buffer(tid, poffset, (Page*)parent);
 
 	left_index = get_left_index(left_offset, parent);
+	
 	if(parent->header_top.num_keys < inter_order - 1) {
-		printf("here2!\n");	
 		insert_into_node(tid, poffset, left_index, key_right, right_offset, parent);
 		return;
 	}
-	printf("here3!\n");	
 	insert_into_node_after_splitting(left_index, tid, key_right, right_offset, poffset, parent);
 }
 
@@ -349,8 +353,7 @@ insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, ukey64_t key, u
 	
 	new_key = new_leaf->record[0].key;
 	old_key = leaf->record[0].key;
-	printf("old key: %ld\nnew_key: %ld\n", old_key, new_key);
-
+	
 	insert_into_parent(tid, old_key, new_key, offset, new_offset, (NodePage*)leaf, (NodePage*)new_leaf);
 }
 
@@ -620,7 +623,6 @@ insert(utable_t tid, ukey64_t key, ustring_t value) {
 
 	//root is empty 
 	if (node_offset == 0) {
-		printf("root is empty!\n");
 		node_offset = init_root(tid, True);
 		
 		read_buffer(tid, node_offset, (Page*)leaf_page);
@@ -634,14 +636,12 @@ insert(utable_t tid, ukey64_t key, ustring_t value) {
 	node_offset = find_leaf(tid, key, leaf_page);
 	// just write on that page
 	if ( leaf_page->header_top.num_keys < leaf_order - 1) {
-		printf("p2\n\n");
 		//buffer lock change ( read lock -> write lock ) { node_offset }
 		insert_into_leaf(tid, node_offset, key, value, leaf_page);
 		//buffer release 	
 		return;
 	}
 	
-		printf("p3\n\n");
 	//buffer lock change ( read_lock -> write+up lock ) { node_offset }
 	insert_into_leaf_after_splitting(node_offset, tid, key, value, leaf_page);
 	

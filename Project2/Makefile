@@ -24,9 +24,9 @@ TARGET=main
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -lpthread 
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
 	make static_library
-	$(CC) $(CFLAGS) -o $@ $^ -L $(LIBS) -lbpt -lpthread 
+	$(CC) $(CFLAGS) -o $@ $^ -L $(LIBS) -lbpt
 
 clean:
 	rm $(TARGET) $(TARGET_OBJ) $(OBJS_FOR_LIB) $(LIBS)*

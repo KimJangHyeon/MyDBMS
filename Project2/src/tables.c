@@ -1,14 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 #include "params.h"
 #include "types.h"
 #include "pages.h"
 #include "tables.h"
 #include "inits.h"
 #include "disks.h"
-#include "thread.h"
+
 
 TablePool tp;
 
@@ -31,61 +30,6 @@ get_tid() {
 		}
 	}
 	return TIDFULL;
-}
-
-bool
-get_isExtend(utable_t tid) {
-	for (int i = 0; i < tp.count; i++) {
-		if (tp.tables[i].tid == tid) {
-			return tp.tables[i].extend;
-		}
-	}
-}
-
-bool
-extend_lock(utable_t tid) {
-	for (int i = 0; i < tp.count; i++) {
-		if (tp.tables[i].tid == tid) {
-			if (__sync_bool_compare_and_swap(&(tp.tables[i].extend), 0, 1)) {
-				printf("extend lock success\n");
-				return True;
-			} else {
-				printf("extend lock fail\n");
-				return False;
-			}
-		}
-	}
-}
-
-void
-extend_release(utable_t tid) {
-	for (int i = 0; i < tp.count; i++) {
-		if (tp.tables[i].tid == tid) {
-			if (!__sync_bool_compare_and_swap(&(tp.tables[i].extend), 1, 0)) {
-				printf("extend release fail\n");
-				exit(0);
-			}
-		}
-	}
-}
-
-int
-disk_lock(utable_t tid) {
-	for (int i = 0; i < tp.count; i++) {
-		if (tp.tables[i].tid == tid) {
-				pthread_mutex_lock(&(tp.tables[i].lock));
-				return 0;
-		}
-	}
-}
-
-int 
-disk_release(utable_t tid) {
-	for (int i = 0; i < tp.count; i++) {
-		if (tp.tables[i].tid == tid) {
-			pthread_mutex_unlock(&(tp.tables[i].lock));
-		}
-	}
 }
 
 char*
@@ -152,8 +96,7 @@ open_table(char* path) {
 	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	temp->tid = tid;
 	temp->fd = FDCLOSE;
-	pthread_mutex_init(&(temp->lock), NULL);
-	temp->extend = 0;
+
 
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));
@@ -165,7 +108,6 @@ open_table(char* path) {
 		close_disk(tid);
 		if (size == 0) 
 			init_table(tid);
-		
 		return 1;
 	}
 	while (low <= high) {
@@ -201,9 +143,9 @@ open_table(char* path) {
 	open_disk(tid);
 	size = disk_size(tid);
 	close_disk(tid);
-	if (size == 0) { 
+	if (size == 0) 
 		init_table(tid);
-	}
+	
 	return tid;	
 }
 
