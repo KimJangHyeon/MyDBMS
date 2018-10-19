@@ -15,5 +15,5 @@ typedef struct _ThreadPool {
 	EThread ethread;
 } ThreadPool;
 
-void extend_call(utable_t, int);
+int extend_call(utable_t, int);
 void init_threads();

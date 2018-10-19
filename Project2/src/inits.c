@@ -34,6 +34,7 @@ init_threads() {
 
 void
 init_table(utable_t tid) {
+	int index;
 	HeaderPage hp;
 	memset(&hp, 0, sizeof(HeaderPage)); 
 	hp.f_page_offset = 0;
@@ -42,7 +43,8 @@ init_table(utable_t tid) {
 	hp.number_of_free_pages = 0;
 	flush_page(tid, HEADEROFFSET, (Page*)&hp);
 	d_print_dpage(tid, 0, DHEADER);
-	extend_call(tid, 7);
+	index = extend_call(tid, 7);
+	while (thp.ethread.sizes[index] != -1);
 }
 
 uoffset_t

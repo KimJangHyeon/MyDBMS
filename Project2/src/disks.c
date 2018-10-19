@@ -27,15 +27,14 @@ open_disk(utable_t tid) {
 	char* db_path;
 	int fd;
 	db_path = get_path(tid);
-	disk_lock(tid, 0);
-	printf("??\n");
+	disk_lock(tid);
+	fd = get_fd(tid);
 	if((fd = open(db_path, O_CREAT | O_RDWR, 0777)) == -1) {
 		printf("path: %s\n", db_path);
         	fprintf(stderr, "Write error: %s\n", strerror(errno));
         	panic("(disk.c)open file error");
 		return -1;
 	}
-	printf("??\n");
 	put_fd(tid, fd);
 	return fd; 
 }
@@ -44,10 +43,10 @@ open_disk(utable_t tid) {
 int
 close_disk(utable_t tid) {
 	int fd;
-        fd = get_fd(tid);
-        close(fd);
-        put_fd(tid, FDCLOSE);
-	disk_release(tid, 0);
+	fd = get_fd(tid);
+	close(fd);
+	put_fd(tid, FDCLOSE);
+	disk_release(tid);
 }
 
 unumber_t
@@ -81,9 +80,7 @@ void
 load_page(utable_t tid, uoffset_t offset, Page* page) {
         int size;
         int fd;
-		printf("before open\n");
         open_disk(tid);
-		printf("load after open\n");
         fd = get_fd(tid);
         if((size = pread(fd, page, PAGESIZE, offset)) == -1) {
                 printf("READ ERR: %s\n", strerror(errno));
@@ -108,9 +105,9 @@ alloc_page(utable_t tid) {
 
 	//if free page 0
 	while (m_header->number_of_free_pages == 0) {
-		printf("WARNING: free pages are 0\n");
-        extend_call(tid, cur_page_num);
-		read_buffer(tid, HEADEROFFSET, (Page*)m_header);
+		//printf("WARNING: free pages are 0\n");
+        //extend_call(tid, cur_page_num);
+		//read_buffer(tid, HEADEROFFSET, (Page*)m_header);
 	}
     
 	alloc_offset = m_header->f_page_offset;
@@ -166,13 +163,18 @@ extend_page(void* arg ) {
 		pthread_mutex_lock(&(thp.ethread.mutex[(int)arg]));
 		pthread_cond_wait(&(thp.ethread.cond[(int)arg]), &(thp.ethread.mutex[(int)arg]));
 		pthread_mutex_unlock(&(thp.ethread.mutex[(int)arg]));
-		if (disk_lock(tid, 1) == -1) {
-			continue;
-		}
 		printf("extend start\n");
+		tid = thp.ethread.tids[(int)arg];
+		size = thp.ethread.sizes[(int)arg];
 		//===================================
     	read_buffer(tid, HEADEROFFSET, (Page*)m_header);
     	num_cur_pages = m_header->number_of_pages;
+		//========================
+		//if (extend percent > (free pages / num_cur_pages))
+		//	do not extend and set tid = 0, size = -1 
+		// 	and go sleep
+		//		--> it is case not atomic between extend bit and percent checking
+		//========================
 		fprintf(stderr, "num cur pages: %ld\n", num_cur_pages);
     	uoffset_t free_page_offset = num_cur_pages * PAGESIZE;	
 		expand_limit = (size + num_cur_pages) * PAGESIZE;
@@ -182,7 +184,6 @@ extend_page(void* arg ) {
         	free_page->next_free_page = free_page_offset - PAGESIZE;
         	flush_page(tid, free_page_offset, (Page*)free_page);
     	}
-    	free(free_page);
     
     	load_page(tid, num_cur_pages * PAGESIZE, (Page*)&first_free_page);
     	first_free_page.next_free_page = m_header->f_page_offset;
@@ -192,8 +193,11 @@ extend_page(void* arg ) {
     	m_header->number_of_pages += size;
     	m_header->number_of_free_pages += size;
     	write_buffer(tid, HEADEROFFSET, (Page*)m_header);
+		
+		thp.ethread.tids[(int)arg] = 0;
+		thp.ethread.sizes[(int)arg] = -1;
+		extend_release(tid);
 		printf("before release\n");
-		disk_release(tid, 1);
 		printf("extend thread done\n");
 		//===================================
 	}

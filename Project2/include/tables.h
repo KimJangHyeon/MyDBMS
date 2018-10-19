@@ -14,8 +14,10 @@ typedef struct _TablePool {
 } TablePool;
 
 bool get_isExtend(utable_t);
-int disk_lock(utable_t, bool);
-int disk_release(utable_t, bool);
+bool extend_lock(utable_t);
+void extend_release(utable_t);
+int disk_lock(utable_t);
+int disk_release(utable_t);
 void init_tablepool();
 utable_t open_table(char*);
 int close_table(utable_t);

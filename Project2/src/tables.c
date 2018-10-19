@@ -42,14 +42,37 @@ get_isExtend(utable_t tid) {
 	}
 }
 
-int
-disk_lock(utable_t tid, bool isExtend) {
+bool
+extend_lock(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) {
 		if (tp.tables[i].tid == tid) {
-				if (isExtend) {
-					if (__sync_bool_compare_and_swap(&(tp.tables[i].extend), 0, 1))
-						return -1;
-				}
+			if (__sync_bool_compare_and_swap(&(tp.tables[i].extend), 0, 1)) {
+				printf("extend lock success\n");
+				return True;
+			} else {
+				printf("extend lock fail\n");
+				return False;
+			}
+		}
+	}
+}
+
+void
+extend_release(utable_t tid) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) {
+			if (!__sync_bool_compare_and_swap(&(tp.tables[i].extend), 1, 0)) {
+				printf("extend release fail\n");
+				exit(0);
+			}
+		}
+	}
+}
+
+int
+disk_lock(utable_t tid) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) {
 				pthread_mutex_lock(&(tp.tables[i].lock));
 				return 0;
 		}
@@ -57,14 +80,11 @@ disk_lock(utable_t tid, bool isExtend) {
 }
 
 int 
-disk_release(utable_t tid, bool isExtend) {
+disk_release(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) {
-		if (__sync_bool_compare_and_swap(&(tp.tables[i].extend), 1, 0)) {
-			//err
-			printf("extend release errr!!\n(%d)", tp.tables[i].extend);
-			exit(0);
+		if (tp.tables[i].tid == tid) {
+			pthread_mutex_unlock(&(tp.tables[i].lock));
 		}
-		pthread_mutex_unlock(&(tp.tables[i].lock));
 	}
 }
 
@@ -145,6 +165,7 @@ open_table(char* path) {
 		close_disk(tid);
 		if (size == 0) 
 			init_table(tid);
+		
 		return 1;
 	}
 	while (low <= high) {
@@ -180,9 +201,9 @@ open_table(char* path) {
 	open_disk(tid);
 	size = disk_size(tid);
 	close_disk(tid);
-	if (size == 0) 
+	if (size == 0) { 
 		init_table(tid);
-	
+	}
 	return tid;	
 }
 
