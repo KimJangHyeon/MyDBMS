@@ -187,21 +187,25 @@ insert_into_new_root(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 void
 insert_into_node(utable_t tid, uoffset_t poffset, int left_index, ukey64_t key, uoffset_t right_offset, InternalPage* parent) {
 	int i;
-	d_print_mpage(tid, (Page*)parent, 2);
-	printf("num key: %d\n", parent->header_top.num_keys);
+	//d_print_mpage(tid, (Page*)parent, 2);
+	//printf("num key: %d\n", parent->header_top.num_keys);
 	for (i = parent->header_top.num_keys; i > left_index + 1; i--) {
-		printf("[%d]\n", i);
+		//printf("[%d]\n", i);
 		//LRECORDSIZE -> IRECORDSIZE case nanum
-		memcpy(&(parent->record[i]), &(parent->record[i - 1]), LRECORDSIZE);
-		d_print_mpage(tid, (Page*)parent, 2);
+		if ( parent->header_top.isLeaf)
+			memcpy(&(parent->record[i]), &(parent->record[i - 1]), LRECORDSIZE);
+		else 
+			memcpy(&(parent->record[i]), &(parent->record[i - 1]), IRECORDSIZE);
+			
+		//d_print_mpage(tid, (Page*)parent, 2);
 	}
 	parent->header_top.num_keys++;
-	d_print_mpage(tid, (Page*)parent, 2);
+	//d_print_mpage(tid, (Page*)parent, 2);
 	parent->record[left_index + 1].offset = right_offset;
 	parent->record[left_index + 1].key = key;
 
 
-	d_print_mpage(tid, (Page*)parent, 2);
+	//d_print_mpage(tid, (Page*)parent, 2);
 	write_buffer(tid, poffset, (Page*)parent);
 	return;
 }

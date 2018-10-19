@@ -116,11 +116,9 @@ int storetest(utable_t tid) {
 
 
 int reversetest(utable_t tid) {
-    for(int i = LRECORD * 10 - 1; i >= 231; i--) {
+    for(int i = LRECORD * 10 - 1; i >= 0; i--) {
         insert(tid, i, "a");
-    	d_print_tree(tid);
     }  
-	exit(0);
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
     for(int i = LRECORD * 10 - 1; i >= 0; i--) {
