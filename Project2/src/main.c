@@ -7,6 +7,7 @@
 #include "tables.h"
 #include "disks.h"
 #include "views.h"
+#include "inits.h"
 //========================
 #include "utils.h"
 #include "queue.h"
@@ -227,6 +228,7 @@ main (int argc, char ** argv) {
 		simple_release(&(iq->lock));
 	}
 */
+	init_threads();
 	init_tablepool();
 	utable_t tid = open_table(table_path);
 	test(tid);

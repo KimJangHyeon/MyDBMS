@@ -19,7 +19,8 @@
 #include "inits.h"
 #include "thread.h"
 
-extern ThreadPool tp;
+ThreadPool tp;
+
 
 int
 open_disk(utable_t tid) {
@@ -104,7 +105,7 @@ alloc_page(utable_t tid) {
 
 	//if free page 0
 	while (m_header->number_of_free_pages == 0) {
-		printf("WARNING: free pages are 0\n");
+		//printf("WARNING: free pages are 0\n");
 		read_buffer(tid, HEADEROFFSET, (Page*)m_header);
 	}
     
@@ -161,6 +162,9 @@ extend_page(void* arg ) {
 		pthread_mutex_lock(&(tp.ethread.mutex[(int)arg]));
 		pthread_cond_wait(&(tp.ethread.cond), &(tp.ethread.mutex[(int)arg]));
 		pthread_mutex_unlock(&(tp.ethread.mutex[(int)arg]));
+		if (tp.ethread.sizes[(int)arg] == -1) 
+			continue;
+
 		//===================================
     	read_buffer(tid, HEADEROFFSET, (Page*)m_header);
     	num_cur_pages = m_header->number_of_pages;

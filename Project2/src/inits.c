@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,7 +12,26 @@
 #include "buffers.h"
 #include "utils.h"
 #include "inits.h"
+#include "thread.h"
+
 //called open_table
+ThreadPool tp;
+
+void
+init_threads() {
+    for (int i = 0; i < NETHREAD; i++) {
+        tp.ethread.tids[i] = 0;
+        tp.ethread.sizes[i] = -1;
+		printf("sz: %d\n", tp.ethread.sizes[i]);
+        pthread_mutex_init(&(tp.ethread.mutex[i]), NULL);
+    }   
+    pthread_cond_init(&(tp.ethread.cond), NULL);
+    for (int i = 0; i < NETHREAD; i++) {
+        pthread_create(&tp.ethread.threads[i], NULL, extend_page, (void*)i);
+    }   
+}
+
+
 void
 init_table(utable_t tid) {
 	HeaderPage hp;
@@ -22,7 +42,7 @@ init_table(utable_t tid) {
 	hp.number_of_free_pages = 0;
 	flush_page(tid, HEADEROFFSET, (Page*)&hp);
 	d_print_dpage(tid, 0, DHEADER);
-	extend_page(tid, 7);
+	extend_call(tid, 7);
 }
 
 uoffset_t
