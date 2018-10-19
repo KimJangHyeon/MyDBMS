@@ -229,6 +229,6 @@ main (int argc, char ** argv) {
 */
 	init_tablepool();
 	utable_t tid = open_table(table_path);
-	test(tid);
-	reversetest(tid);
+	client_loop();
+	//test(tid);
 }
