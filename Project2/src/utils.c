@@ -7,6 +7,7 @@
 #include "params.h"
 #include "pages.h"
 #include "disks.h"
+#include "queue.h"
 #include "utils.h"
 
 #define QueueSize 10000
@@ -269,4 +270,14 @@ d_print_tree(utable_t tid) {
 
 }
 
-
+void
+d_print_queue(IndexQueue* q) {
+	
+	printf("*********************\n");
+	printf("queue(%d): ", q->size);
+	for (int i = q->front; i < q->rear; i++) {
+		printf("%d ", q->arr[i]);
+	}
+	printf("\n");
+	printf("*********************\n");
+}

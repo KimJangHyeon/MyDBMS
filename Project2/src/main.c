@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include "types.h"
 #include "params.h"
+#include "queue.h"
 #include "pages.h"
 #include "lock.h"
 #include "tables.h"
 #include "disks.h"
+#include "buffers.h"
 #include "views.h"
 //========================
 #include "utils.h"
-#include "queue.h"
 
 #define NTEST 10
 
@@ -202,8 +203,10 @@ int
 main (int argc, char ** argv) {
 	
     char* table_path;
-    if(argc > 1 && argc < 3) {
+	int num_buf;
+    if(argc > 2 && argc < 4) {
         table_path = argv[1];
+		num_buf = atoi(argv[2]);
     } else {
         panic("panic for input(buffer.c)");
     }
@@ -212,21 +215,7 @@ main (int argc, char ** argv) {
 	utable_t tid = open_table(table_path);
 	test(tid);
 	*/
-/*	
-	IndexQueue* iq = (IndexQueue*)malloc(sizeof(IndexQueue));
-	init_indexqueue(iq, 10);
-	for (int i = 0; i < 11; i++) {
-		simple_lock(&(iq->lock));
-		enqueue_index(iq, i);
-		simple_release(&(iq->lock));
-	}
-	for (int i = 0; i < 11; i++) {
-		simple_lock(&(iq->lock));
-		printf("dequeue: %d\n", dequeue_index(iq));
-		simple_release(&(iq->lock));
-	}
-*/
-	init_tablepool();
+	init_db(num_buf);
 	utable_t tid = open_table(table_path);
 	client_loop(tid);
 	//test(tid);
