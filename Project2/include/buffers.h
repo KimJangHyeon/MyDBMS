@@ -20,7 +20,7 @@ typedef struct _Buffer {
 
 
 typedef struct _BufferPool {
-	pthread_spinlock_t index_lock;
+	pthread_spinlock_t index_lock;	// victim, latest
 	IndexQueue* queue;
 	int num_buf;
 	int victim_index;

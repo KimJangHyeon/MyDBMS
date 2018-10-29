@@ -19,14 +19,19 @@ init_db (int num_buf) {
 	bp->num_buf = num_buf;
 	bp->queue = (IndexQueue*)malloc(sizeof(IndexQueue));
 	bp->buffers = (Buffer*)malloc(sizeof(Buffer) * num_buf);
+	pthread_spin_init(&(bp->index_lock), 0);
+
+	//do spin lock
 	bp->victim_index = -1;
 	bp->latest_index = -1; 
+	// release spin lock
 	//========init bp done ===============
 	init_tablepool();
 	init_indexqueue(bp->queue, num_buf);
 	for (int i = 0; i < num_buf; i++) {
 		memset(&(bp->buffers[i]), 0, sizeof(Buffer));
 		bp->buffers[i].cb.state = Empty;
+		bp->
 		enqueue_index(bp->queue, i);
 	}
 
