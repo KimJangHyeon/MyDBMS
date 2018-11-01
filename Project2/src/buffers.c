@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pthread.h>
 #include "types.h"
 #include "params.h"
 #include "pages.h"
@@ -22,16 +23,20 @@ init_db (int num_buf) {
 	pthread_spin_init(&(bp->index_lock), 0);
 
 	//do spin lock
+	pthread_spin_lock(&(bp->index_lock));
+	
 	bp->victim_index = -1;
 	bp->latest_index = -1; 
+	
 	// release spin lock
+	pthread_spin_unlock(&(bp->index_lock));
+
 	//========init bp done ===============
 	init_tablepool();
 	init_indexqueue(bp->queue, num_buf);
 	for (int i = 0; i < num_buf; i++) {
 		memset(&(bp->buffers[i]), 0, sizeof(Buffer));
 		bp->buffers[i].cb.state = Empty;
-		bp->
 		enqueue_index(bp->queue, i);
 	}
 
@@ -51,8 +56,16 @@ init_db (int num_buf) {
 		bp->latest_index = i;
 */
 
+
+//check after pin++, if state != Running if so, find (tid, off)
 void
 read_buffer(utable_t tid, uoffset_t offset, Page* page) {
+	//if has tid and offset==> (problem checked but it became targeted)
+
+	for (int i = 0; i < bp->buffers[i]; i++) {
+		
+	}
+
 	load_page(tid, offset, page);
 }
 

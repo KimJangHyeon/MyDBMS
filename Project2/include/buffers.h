@@ -1,11 +1,14 @@
 
+/*
+   state(Prepare) --> 
+		*/
+
 typedef enum _State {
 	Empty, Prepare, Loading, Running, Cleaning
 } State;
 
 typedef struct _ControlBlock {
 	State state;
-	RWLock rw;
 	utable_t tid;
 	uoffset_t off;
 	bool isDirty;
@@ -20,7 +23,6 @@ typedef struct _Buffer {
 
 
 typedef struct _BufferPool {
-	pthread_spinlock_t index_lock;	// victim, latest
 	IndexQueue* queue;
 	int num_buf;
 	int victim_index;
