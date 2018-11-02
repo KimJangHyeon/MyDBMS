@@ -155,42 +155,51 @@ void test(utable_t tid) {
 
 char client() {
 	char choice;
-	printf("****************\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
+	printf("****************\nopen: o\nclose: c\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
 	printf("> ");
 	scanf("%c", &choice);
 	return choice;
 }
 
-void client_loop(utable_t tid) {
-    char* table_path;
-    //test(tid);
-
+void client_loop() {
+    char table_path[64];
+	utable_t tid;
 	ukey64_t key;
 	ustring_t value = (ustring_t)malloc(sizeof(char)* 120);
 
 	while(1) {
 		switch(client()) {
-			//case 'o':
-			//	scanf("%s", table_path);
-			//	tid = open_table(table_path);
-			//	break;
+			case 'o':
+				scanf("%s", table_path);
+				tid = open_table(table_path);
+				printf("tid: %ld\n", tid);
+				break;
+			case 'c':
+				scanf("%ld", &tid);
+				close_table(tid);
+				break;
 			case 'i':
-				scanf("%ld %s", &key, value);
+				scanf("%ld %ld %s", &tid, &key, value);
 				insert(tid, key, value);
 				break;
 			case 'd':
-				scanf("%ld", &key);
+				scanf("%ld %ld", &tid, &key);
 				delete(tid, key); 
 				break;
 			case 'f':
-				scanf("%ld", &key);
+				scanf("%ld %ld", &tid, &key);
 				find(tid, key, &value);
 				printf("find: %s\n", value);
 				break;
 			case 't':
+				scanf("%ld", &tid);
 				test(tid);
 				break;
+			case 'l':
+				debug_lru();
+				break;
 			case 'p':
+				scanf("%ld", &tid);
 				d_print_tree(tid);
 				break;
 		}
@@ -204,9 +213,8 @@ main (int argc, char ** argv) {
 	
     char* table_path;
 	int num_buf;
-    if(argc > 2 && argc < 4) {
-        table_path = argv[1];
-		num_buf = atoi(argv[2]);
+    if(argc > 1 && argc < 3) {
+		num_buf = atoi(argv[1]);
     } else {
         panic("panic for input(buffer.c)");
     }
@@ -216,7 +224,6 @@ main (int argc, char ** argv) {
 	test(tid);
 	*/
 	init_db(num_buf);
-	utable_t tid = open_table(table_path);
-	client_loop(tid);
+	client_loop();
 	//test(tid);
 }

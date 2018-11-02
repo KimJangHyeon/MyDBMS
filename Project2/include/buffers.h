@@ -11,6 +11,7 @@ typedef struct _ControlBlock {
 	State state;
 	utable_t tid;
 	uoffset_t off;
+	int pin;
 	bool isDirty;
 	int lru_next;
 	int lru_prev;
@@ -33,3 +34,4 @@ typedef struct _BufferPool {
 int init_db(int);
 void read_buffer(utable_t, uoffset_t, Page*);
 void write_buffer(utable_t, uoffset_t, Page*);
+void debug_lru();

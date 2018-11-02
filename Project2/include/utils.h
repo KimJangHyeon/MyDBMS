@@ -8,5 +8,4 @@ void  d_print_mpage(utable_t, Page*, int);
 void d_free_page_ditector(utable_t);
 void d_print_tree(utable_t);
 void d_print_queue(IndexQueue*);
-
-
+void d_print_lru_priority(BufferPool*);

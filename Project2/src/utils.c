@@ -8,6 +8,7 @@
 #include "pages.h"
 #include "disks.h"
 #include "queue.h"
+#include "buffers.h"
 #include "utils.h"
 
 #define QueueSize 10000
@@ -280,4 +281,19 @@ d_print_queue(IndexQueue* q) {
 	}
 	printf("\n");
 	printf("*********************\n");
+}
+
+void
+d_print_lru_priority(BufferPool* bp) {
+	int index = bp->latest_index;
+	int count = 0;
+	printf("victim: %d\n", bp->victim_index);
+	printf("latest: %d\n", bp->latest_index);
+	while(index != -1) {
+		printf("(i: %d, t: %lu, o: %lu p: %d n: %d) ", index, bp->buffers[index].cb.tid, bp->buffers[index].cb.off, bp->buffers[index].cb.lru_prev, bp->buffers[index].cb.lru_next);
+		index = bp->buffers[index].cb.lru_next;
+		if (count++ > bp->num_buf)
+			break;
+	}
+	printf("\n******************\n\n\n");	
 }
