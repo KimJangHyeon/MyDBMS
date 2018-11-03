@@ -107,6 +107,42 @@ lru_change(int index) {
 
 }
 
+void 
+lru_clean(int index) {
+	int next_index, prev_index;	
+	int cur_latest_index, cur_victim_index;
+	char isLatest = 0;
+	char isVictim = 0;
+
+	next_index = bp->buffers[index].cb.lru_next;
+	prev_index = bp->buffers[index].cb.lru_prev;
+	cur_latest_index = bp->latest_index;
+	cur_victim_index = bp->victim_index;
+
+	if (prev_index != -1) {
+		if (cur_victim_index == index) {
+			isVictim = 1;
+			bp->victim_index = prev_index;
+		}
+		bp->buffers[prev_index].cb.lru_next = next_index;
+	}
+
+	if (next_index != -1) {
+		if (cur_latest_index == index) {
+			isLatest = 1;
+			bp->latest_index = next_index;
+		}
+		bp->buffers[next_index].cb.lru_prev = prev_index;
+	}
+
+	if (cur_latest_index == index && (!isLatest)) {
+		bp->latest_index = -1;
+	}
+	if (cur_victim_index == index && (!isVictim)) {
+		bp->victim_index = -1;
+	}
+
+}
 
 void
 clean_buffer(int index) {
@@ -187,12 +223,12 @@ access_buffer(utable_t tid, uoffset_t offset) {
 
 }
 
-void
+int
 try_empty_buffer(utable_t tid, uoffset_t offset) {
 	int index = find_buffer(tid, offset);
 	
 	if (index == -1)
-		return;
+		return index;
 
 	if (bp->buffers[index].cb.pin != 0) {
 		printf("err: dealloc target pin is not 0!!\n");
@@ -208,13 +244,14 @@ try_empty_buffer(utable_t tid, uoffset_t offset) {
 	clean_buffer(index);
 	bp->buffers[index].cb.tid = 0;
 	bp->buffers[index].cb.off = 0;
-
+	lru_clean(index);
 	if (bp->buffers[index].cb.state == Cleaning) 
 		bp->buffers[index].cb.state = Empty;
 	else {
 		printf("err: dealloc Cleaning->Empty\n");
 	}
 
+	return index;
 }
 
 //check after pin++, if state != Running if so, find (tid, off)
@@ -243,8 +280,15 @@ write_buffer(utable_t tid, uoffset_t offset, Page* page) {
 void
 dealloc_buffer(utable_t tid, uoffset_t offset) {
 	printf("dealloc_buffer(%ld, %ld)\n", tid, offset);
+	int index = try_empty_buffer(tid, offset);
+	
+	if (index != -1)
+		enqueue_index(bp->queue, index);
+
 	dealloc_page(tid, offset);
 }
+
+
 
 void 
 debug_lru() {
