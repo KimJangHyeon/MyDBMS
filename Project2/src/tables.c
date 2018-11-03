@@ -7,6 +7,8 @@
 #include "tables.h"
 #include "inits.h"
 #include "disks.h"
+#include "queue.h"
+#include "buffers.h"
 
 
 TablePool tp;
@@ -50,6 +52,11 @@ rm_tid(utable_t tid) {
 	}
 	tp.tids[tid] = 0;
 	return 0;
+}
+
+char
+tid_exist(utable_t tid) {
+	return tp.tids[tid];
 }
 
 void
@@ -151,6 +158,13 @@ int
 close_table(utable_t tid) {
 	int isSuccess = 0;
 	int i;
+
+	
+	if (tid_exist(tid)) {
+		printf("do tid evict!!\n");
+		evict_tid_buffer(tid);
+	}
+
 	if(rm_tid(tid)) {
 		//no such tid
 		return -1;
@@ -173,6 +187,7 @@ close_table(utable_t tid) {
 		return 1;
 	else { 
 		tp.count--;
+		debug_lru();
 		return 0;
 	}
 }

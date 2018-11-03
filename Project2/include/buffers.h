@@ -35,4 +35,5 @@ int init_db(int);
 void read_buffer(utable_t, uoffset_t, Page*);
 void write_buffer(utable_t, uoffset_t, Page*);
 void dealloc_buffer(utable_t, uoffset_t);
+void evict_tid_buffer(utable_t);
 void debug_lru();

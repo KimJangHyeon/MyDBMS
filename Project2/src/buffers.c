@@ -155,6 +155,8 @@ clean_buffer(int index) {
 		printf("clean buffer pin not 0 err!!\n");
 		exit(0);
 	}
+	bp->buffers[index].cb.tid = 0;
+	bp->buffers[index].cb.off = 0;
 }	
 
 int
@@ -183,9 +185,46 @@ evict_buffer() {
 	}
 
 	return target_index;
-	
 }
 
+void
+evict_tid_buffer(utable_t tid) {
+	char isAllClean = 0;
+	int index, prev_index;
+	while(!isAllClean) {
+		printf("first while\n");
+		isAllClean = 1;
+		index = bp->victim_index;
+		while (index != -1) {
+			printf("index: %d\n", index);
+			printf("prev: %d\n", prev_index);
+			prev_index = bp->buffers[index].cb.lru_prev;
+			if (bp->buffers[index].cb.tid != tid) {
+				index = prev_index;
+				continue;
+			}
+
+			isAllClean = 0;
+			if (bp->buffers[index].cb.state == Running) 
+			bp->buffers[index].cb.state = Cleaning;
+			else {
+				printf("(evict_buffer err!!): Running -> Cleaning\n");
+				exit(0);
+			}
+
+			clean_buffer(index);
+			lru_clean(index);
+			if (bp->buffers[index].cb.state == Cleaning) 
+				bp->buffers[index].cb.state = Empty;
+			else {
+				printf("err: dealloc Cleaning->Empty\n");
+			}
+
+			enqueue_index(bp->queue, index);
+			index = prev_index;
+		}
+	}
+}
 
 int 
 access_buffer(utable_t tid, uoffset_t offset) {
@@ -287,6 +326,8 @@ dealloc_buffer(utable_t tid, uoffset_t offset) {
 
 	dealloc_page(tid, offset);
 }
+
+
 
 
 
