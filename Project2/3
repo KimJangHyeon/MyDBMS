@@ -47,6 +47,7 @@ int
 rm_tid(utable_t tid) {
 	//tids lock
 	if (tid <= 0 || tid > NTID) {
+		printf("tid range err\n");
 		return -1;
 	}
 	tp.tids[tid] = 0;
@@ -188,15 +189,6 @@ close_table(utable_t tid) {
 		tp.count--;
 		debug_lru();
 		return 0;
-	}
-}
-
-void
-close_tables() {
-	for (int i = 1; i < NTID + 1; i++) {
-		if (tp.tids[i] != 1)
-			continue;
-		close_table(i);
 	}
 }
 

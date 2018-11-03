@@ -155,7 +155,7 @@ void test(utable_t tid) {
 
 char client() {
 	char choice;
-	printf("****************\nopen: o\nclose: c\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
+	printf("****************\nopen: o\nclose: c\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\nquit: q\n*****************\n");
 	printf("> ");
 	scanf("%c", &choice);
 	return choice;
@@ -164,6 +164,7 @@ char client() {
 void client_loop() {
     char table_path[64];
 	utable_t tid;
+	int res;
 	ukey64_t key;
 	ustring_t value = (ustring_t)malloc(sizeof(char)* 120);
 
@@ -184,8 +185,17 @@ void client_loop() {
 				break;
 			case 'c':
 				scanf("%ld", &tid);
-				close_table(tid);
-				break;
+				res = close_table(tid);
+				if (res == -1) {
+					printf("tid range err!\n");
+					break;
+				} else if (res == 1) {
+					printf("no such tid!\n");
+					break;
+				} else {
+					printf("success!\n");
+					break;
+				}
 			case 'i':
 				scanf("%ld %ld %s", &tid, &key, value);
 				insert(tid, key, value);
@@ -210,10 +220,19 @@ void client_loop() {
 				scanf("%ld", &tid);
 				d_print_tree(tid);
 				break;
+			case 'q':
+				shutdown_db();
+				break;
 		}
 		while(getchar() != '\n');
 	}
 }
+///HEERE
+//FIX CLOSE TABLE return 0 -1 1??
+// if -1 return no such tid
+// if 0 success
+// if 1 fail
+
 
 
 int

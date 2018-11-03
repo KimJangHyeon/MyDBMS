@@ -328,7 +328,11 @@ dealloc_buffer(utable_t tid, uoffset_t offset) {
 }
 
 
-
+int 
+shutdown_db(void) {
+	close_tables();
+	return 0;
+}
 
 
 void 

@@ -104,8 +104,6 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 	while (!inter_page->header_top.isLeaf) {
 		i = 0;
 		i = 1;
-		d_print_mpage(tid, (Page*)inter_page, 2);
-		(getchar() != '\n');
 		while (i < inter_page->header_top.num_keys) {
 			if (key >= inter_page->record[i].key) i++;
 			else break;
