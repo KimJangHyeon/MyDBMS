@@ -14,6 +14,7 @@
 //called open_table
 void
 init_table(utable_t tid) {
+	printf("INIT TABLE!!!\n");
 	HeaderPage hp;
 	memset(&hp, 0, sizeof(HeaderPage)); 
 	hp.f_page_offset = 0;
@@ -21,6 +22,7 @@ init_table(utable_t tid) {
 	hp.number_of_pages = 1;
 	hp.number_of_free_pages = 0;
 	flush_page(tid, HEADEROFFSET, (Page*)&hp);
+	write_buffer(tid, HEADEROFFSET, (Page*)&hp);
 	d_print_dpage(tid, 0, DHEADER);
 	extend_page(tid, 7);
 }
@@ -37,7 +39,8 @@ init_root(utable_t tid, bool isLeaf) {
 
 
     offset = alloc_page(tid);
-    flush_page(tid, offset, (Page*)&node);
+    flush_page(tid, offset, (Page*)&node);	//need??
+	write_buffer(tid, offset, (Page*)&node);
 
     read_buffer(tid, HEADEROFFSET, (Page*)hp);
     hp->r_page_offset = offset;

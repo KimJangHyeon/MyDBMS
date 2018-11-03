@@ -172,6 +172,14 @@ void client_loop() {
 			case 'o':
 				scanf("%s", table_path);
 				tid = open_table(table_path);
+				if (tid == 0) {
+					printf("the table is already opened!\n");
+					break;
+				}
+				if (tid == -1) {
+					printf("table pool is full!!\n");
+					break;
+				}
 				printf("tid: %ld\n", tid);
 				break;
 			case 'c':

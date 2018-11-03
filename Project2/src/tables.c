@@ -87,7 +87,6 @@ open_table(char* path) {
 	//something
 	if ((tid = get_tid()) == TIDFULL) {
 		// table add deny
-		printf("table pool is full!!\n");
 		return -1;
 	}
 	
@@ -112,7 +111,7 @@ open_table(char* path) {
 	}
 	while (low <= high) {
 		mid = (high + low) / 2;
-		compare = memcmp (tp.tables[mid].name, path, TABLENAME);
+		compare = strcmp (tp.tables[mid].name + 6, path);
 		if ((low == high) && (compare != 0)) {
 			break;
 		}
@@ -122,7 +121,6 @@ open_table(char* path) {
 		else if (compare < 0)
 			low = mid + 1;
 		else {
-			printf("have same path\n");
 			return 0;
 		}
 	}

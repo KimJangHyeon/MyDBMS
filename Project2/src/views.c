@@ -96,7 +96,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 		free(inter_page);
 		return 0;
 	}
-
+	printf("newoff: %ld\n", hp->r_page_offset);
 
 	//get page
 	read_buffer(tid, new_offset, (Page*)inter_page);
@@ -104,6 +104,8 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 	while (!inter_page->header_top.isLeaf) {
 		i = 0;
 		i = 1;
+		d_print_mpage(tid, (Page*)inter_page, 2);
+		(getchar() != '\n');
 		while (i < inter_page->header_top.num_keys) {
 			if (key >= inter_page->record[i].key) i++;
 			else break;
@@ -444,7 +446,7 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 	if (!(root->header_top.isLeaf)) {
 		new_offset = ((InternalPage*)root)->record[0].offset;
 		//buffer r lock
-		dealloc_page(tid, roffset);
+		dealloc_buffer(tid, roffset);
 		read_buffer(tid, new_offset, (Page*)&new_root);
 		read_buffer(tid, HEADEROFFSET, (Page*)hp);
 		//header root lock
@@ -460,7 +462,7 @@ adjust_root(utable_t tid, uoffset_t roffset, NodePage* root) {
 		read_buffer(tid, HEADEROFFSET, (Page*)hp);
 		hp->r_page_offset = INITOFFSET;
 		write_buffer(tid, HEADEROFFSET, (Page*)hp);
-		dealloc_page(tid, roffset);
+		dealloc_buffer(tid, roffset);
 	}
 	//printf("adjust done(%d)\n", --adjust_count);
 }
@@ -525,7 +527,7 @@ coalesce_nodes (utable_t tid, int neighbor_index, ukey64_t k_prime, uoffset_t ko
 	read_buffer(tid, poffset, (Page*)parent);
 	//neighbor->header_top.poffset = parent->header_top.poffset;
 	write_buffer(tid, noffset, (Page*)neighbor);
-	dealloc_page(tid, koffset);
+	dealloc_buffer(tid, koffset);
 	
 
 	delete_entry(tid, poffset, koffset, k_prime, parent);

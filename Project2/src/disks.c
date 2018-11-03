@@ -12,10 +12,10 @@
 #include "queue.h"
 #include "pages.h"
 #include "tables.h" 
-#include "utils.h"
 #include "disks.h"
 #include "buffers.h"
 #include "inits.h"
+#include "utils.h"
 int
 open_disk(utable_t tid) {
         char* db_path;
@@ -100,6 +100,7 @@ alloc_page(utable_t tid) {
 	while (m_header->number_of_free_pages == 0) {
 		printf("WARNING: free pages are 0\n");
 		read_buffer(tid, HEADEROFFSET, (Page*)m_header);
+		exit(0);
 	}
     
 	alloc_offset = m_header->f_page_offset;

@@ -52,27 +52,6 @@ find_buffer(utable_t tid, uoffset_t offset) {
 	}
 	return -1;
 }
-/*
-void
-victim_manager(int index) {
-	int prev_index;
-	if (bp->victim_index == index) {
-		prev_index = bp->buffers[index].cb.lru_prev;
-		
-		if (prev_index == -1) {
-			//is single buffer now
-			return;
-		}
-
-		else {
-			bp->victim_index = prev_index;
-		}
-	}
-	else {
-		return;
-	}
-}
-*/
 
 int
 find_lru() {
@@ -208,9 +187,40 @@ access_buffer(utable_t tid, uoffset_t offset) {
 
 }
 
+void
+try_empty_buffer(utable_t tid, uoffset_t offset) {
+	int index = find_buffer(tid, offset);
+	
+	if (index == -1)
+		return;
+
+	if (bp->buffers[index].cb.pin != 0) {
+		printf("err: dealloc target pin is not 0!!\n");
+		exit(0);
+	}
+	
+	if (bp->buffers[index].cb.state == Running) 
+		bp->buffers[index].cb.state = Cleaning;
+
+	else {
+		printf("err: dealloc Running->Cleaning\n");
+	}
+	clean_buffer(index);
+	bp->buffers[index].cb.tid = 0;
+	bp->buffers[index].cb.off = 0;
+
+	if (bp->buffers[index].cb.state == Cleaning) 
+		bp->buffers[index].cb.state = Empty;
+	else {
+		printf("err: dealloc Cleaning->Empty\n");
+	}
+
+}
+
 //check after pin++, if state != Running if so, find (tid, off)
 void
 read_buffer(utable_t tid, uoffset_t offset, Page* page) {
+	d_print_buffer_hpage(bp, tid, offset);
 	printf("read buffer(%ld, %ld)\n", tid, offset);
 	int index = access_buffer(tid, offset);
 	bp->buffers[index].cb.pin++;
@@ -228,6 +238,12 @@ write_buffer(utable_t tid, uoffset_t offset, Page* page) {
 	memcpy(bp->buffers[index].frame, page, PAGESIZE);
 	bp->buffers[index].cb.pin--;
 	//flush_page(tid, offset, page);
+}
+
+void
+dealloc_buffer(utable_t tid, uoffset_t offset) {
+	printf("dealloc_buffer(%ld, %ld)\n", tid, offset);
+	dealloc_page(tid, offset);
 }
 
 void 
