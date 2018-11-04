@@ -2,14 +2,15 @@
 #include <stdlib.h>
 #include "types.h"
 #include "params.h"
+#include "queue.h"
 #include "pages.h"
 #include "lock.h"
 #include "tables.h"
 #include "disks.h"
+#include "buffers.h"
 #include "views.h"
 //========================
 #include "utils.h"
-#include "queue.h"
 
 #define NTEST 10
 
@@ -154,56 +155,93 @@ void test(utable_t tid) {
 
 char client() {
 	char choice;
-	printf("****************\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\n*****************\n");
+	printf("****************\nopen: o\nclose: c\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\nquit: q\n*****************\n");
 	printf("> ");
 	scanf("%c", &choice);
 	return choice;
 }
 
-void client_loop(utable_t tid) {
-    char* table_path;
-    //test(tid);
-
+void client_loop() {
+    char table_path[64];
+	utable_t tid;
+	int res;
 	ukey64_t key;
 	ustring_t value = (ustring_t)malloc(sizeof(char)* 120);
 
 	while(1) {
 		switch(client()) {
-			//case 'o':
-			//	scanf("%s", table_path);
-			//	tid = open_table(table_path);
-			//	break;
+			case 'o':
+				scanf("%s", table_path);
+				tid = open_table(table_path);
+				if (tid == 0) {
+					printf("the table is already opened!\n");
+					break;
+				}
+				if (tid == -1) {
+					printf("table pool is full!!\n");
+					break;
+				}
+				printf("tid: %ld\n", tid);
+				break;
+			case 'c':
+				scanf("%ld", &tid);
+				res = close_table(tid);
+				if (res == -1) {
+					printf("tid range err!\n");
+					break;
+				} else if (res == 1) {
+					printf("no such tid!\n");
+					break;
+				} else {
+					printf("success!\n");
+					break;
+				}
 			case 'i':
-				scanf("%ld %s", &key, value);
+				scanf("%ld %ld %s", &tid, &key, value);
 				insert(tid, key, value);
 				break;
 			case 'd':
-				scanf("%ld", &key);
+				scanf("%ld %ld", &tid, &key);
 				delete(tid, key); 
 				break;
 			case 'f':
-				scanf("%ld", &key);
+				scanf("%ld %ld", &tid, &key);
 				find(tid, key, &value);
 				printf("find: %s\n", value);
 				break;
 			case 't':
+				scanf("%ld", &tid);
 				test(tid);
 				break;
+			case 'l':
+				debug_lru();
+				break;
 			case 'p':
+				scanf("%ld", &tid);
 				d_print_tree(tid);
+				break;
+			case 'q':
+				shutdown_db();
 				break;
 		}
 		while(getchar() != '\n');
 	}
 }
+///HEERE
+//FIX CLOSE TABLE return 0 -1 1??
+// if -1 return no such tid
+// if 0 success
+// if 1 fail
+
 
 
 int
 main (int argc, char ** argv) {
 	
     char* table_path;
+	int num_buf;
     if(argc > 1 && argc < 3) {
-        table_path = argv[1];
+		num_buf = atoi(argv[1]);
     } else {
         panic("panic for input(buffer.c)");
     }
@@ -212,22 +250,7 @@ main (int argc, char ** argv) {
 	utable_t tid = open_table(table_path);
 	test(tid);
 	*/
-/*	
-	IndexQueue* iq = (IndexQueue*)malloc(sizeof(IndexQueue));
-	init_indexqueue(iq, 10);
-	for (int i = 0; i < 11; i++) {
-		simple_lock(&(iq->lock));
-		enqueue_index(iq, i);
-		simple_release(&(iq->lock));
-	}
-	for (int i = 0; i < 11; i++) {
-		simple_lock(&(iq->lock));
-		printf("dequeue: %d\n", dequeue_index(iq));
-		simple_release(&(iq->lock));
-	}
-*/
-	init_tablepool();
-	utable_t tid = open_table(table_path);
-	client_loop(tid);
+	init_db(num_buf);
+	client_loop();
 	//test(tid);
 }

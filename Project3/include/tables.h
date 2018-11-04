@@ -18,4 +18,4 @@ void print_tp();
 char* get_path(utable_t);
 int get_fd(utable_t);
 void put_fd(utable_t, int);
-
+void close_tables();

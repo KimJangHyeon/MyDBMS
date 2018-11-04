@@ -1,5 +1,5 @@
 typedef struct _IndexQueue {
-	bool lock;
+	pthread_spinlock_t lock;
 	int rear;
 	int front;
 	int *arr;

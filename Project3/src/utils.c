@@ -7,6 +7,8 @@
 #include "params.h"
 #include "pages.h"
 #include "disks.h"
+#include "queue.h"
+#include "buffers.h"
 #include "utils.h"
 
 #define QueueSize 10000
@@ -269,4 +271,99 @@ d_print_tree(utable_t tid) {
 
 }
 
+void
+d_print_queue(IndexQueue* q) {
+	
+	printf("*********************\n");
+	printf("queue(%d): ", q->size);
+	for (int i = q->front; i < q->rear; i++) {
+		printf("%d ", q->arr[i]);
+	}
+	printf("\n");
+	printf("*********************\n");
+}
 
+void
+d_print_lru_priority(BufferPool* bp) {
+	int index = bp->latest_index;
+	int count = 0;
+	printf("victim: %d\n", bp->victim_index);
+	printf("latest: %d\n", bp->latest_index);
+	while(index != -1) {
+		printf("(i: %d, t: %lu, o: %lu p: %d n: %d) ", index, bp->buffers[index].cb.tid, bp->buffers[index].cb.off, bp->buffers[index].cb.lru_prev, bp->buffers[index].cb.lru_next);
+		index = bp->buffers[index].cb.lru_next;
+		if (count++ > bp->num_buf)
+			break;
+	}
+	printf("\n******************\n\n\n");	
+}
+
+void
+d_print_buffer_hpage(BufferPool* bp, utable_t tid, uoffset_t off) {
+	HeaderPage * hp;
+	if (off != 0) 
+		return;
+	char  isFind = 0;
+	for (int i = 0; i < bp->num_buf; i++) {
+		if (bp->buffers[i].cb.tid == tid && bp->buffers[i].cb.off == off) {
+			hp = (HeaderPage*)bp->buffers[i].frame;
+			isFind = 1;
+		}
+	}
+	if (isFind == 0)
+		return;
+
+	printf("******************M_Header******************\n");
+   	printf("free page: %lu\n", hp->f_page_offset);
+	printf("root page: %lu\n", hp->r_page_offset);
+	printf("num page : %lu\n", hp->number_of_pages);
+	printf("num fpage: %lu\n", hp->number_of_free_pages);
+	printf("********************************************\n");
+}
+/*
+void
+d_print_buffer_npage(BufferPool* bp, utable_t tid, uoffset_t off) {
+        LeafPage* lp;
+        InternalPage* ip;
+        NodePage* np;
+		char isFind = 0;
+		for (int i = 0; i < bp->num_buf; i++) {
+			if (bp->buffers[i].cb.tid == tid && bp->buffers[i].cb.off == off) {
+				np = (NodePage*)bp->buffers[i].frame;
+				isFind = 1;
+			}
+		}
+		if (isFind == 0)
+			return;
+
+
+        load_page(tid, offset, (Page*)&np);
+        if(np.header_top.isLeaf) {
+                printf("**************** leaf *****************\n");
+                memcpy(&lp, &np, PAGESIZE);
+                printf("poffset: %lu \n", lp.header_top.poffset);
+                printf("is leaf: %d\n", lp.header_top.isLeaf);
+                printf("num key: %d\n", lp.header_top.num_keys);
+                printf("sibling: %ld\n", lp.sibling);
+                for( int i = 0; i < lp.header_top.num_keys; i++) {
+                        printf("[%d]\n", i);
+                        printf("key: %ld\n", lp.record[i].key);
+                        printf("value: %s\n", (lp.record[i].value));
+                }
+        }
+        else {
+                printf("**************** inter *****************\n");
+                memcpy(&ip, &np, PAGESIZE);
+                printf("poffset: %lu \n", ip.header_top.poffset);
+                printf("is leaf: %d\n", ip.header_top.isLeaf);
+                printf("num key: %d\n", ip.header_top.num_keys);
+                for( int i = 0; i < ip.header_top.num_keys; i++) {
+                        printf("[%d]\n", i);
+                        printf("key: %ld\n", ip.record[i].key);
+                        printf("value: %ld\n", ip.record[i].offset);
+
+                }
+        }
+        printf("*************************************\n");
+
+}*/

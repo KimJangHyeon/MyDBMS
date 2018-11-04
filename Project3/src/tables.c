@@ -7,6 +7,8 @@
 #include "tables.h"
 #include "inits.h"
 #include "disks.h"
+#include "queue.h"
+#include "buffers.h"
 
 
 TablePool tp;
@@ -45,11 +47,15 @@ int
 rm_tid(utable_t tid) {
 	//tids lock
 	if (tid <= 0 || tid > NTID) {
-		printf("tid range err\n");
 		return -1;
 	}
 	tp.tids[tid] = 0;
 	return 0;
+}
+
+char
+tid_exist(utable_t tid) {
+	return tp.tids[tid];
 }
 
 void
@@ -87,7 +93,6 @@ open_table(char* path) {
 	//something
 	if ((tid = get_tid()) == TIDFULL) {
 		// table add deny
-		printf("table pool is full!!\n");
 		return -1;
 	}
 	
@@ -112,7 +117,7 @@ open_table(char* path) {
 	}
 	while (low <= high) {
 		mid = (high + low) / 2;
-		compare = memcmp (tp.tables[mid].name, path, TABLENAME);
+		compare = strcmp (tp.tables[mid].name + 6, path);
 		if ((low == high) && (compare != 0)) {
 			break;
 		}
@@ -122,7 +127,6 @@ open_table(char* path) {
 		else if (compare < 0)
 			low = mid + 1;
 		else {
-			printf("have same path\n");
 			return 0;
 		}
 	}
@@ -153,6 +157,13 @@ int
 close_table(utable_t tid) {
 	int isSuccess = 0;
 	int i;
+
+	
+	if (tid_exist(tid)) {
+		printf("do tid evict!!\n");
+		evict_tid_buffer(tid);
+	}
+
 	if(rm_tid(tid)) {
 		//no such tid
 		return -1;
@@ -175,7 +186,17 @@ close_table(utable_t tid) {
 		return 1;
 	else { 
 		tp.count--;
+		debug_lru();
 		return 0;
+	}
+}
+
+void
+close_tables() {
+	for (int i = 1; i < NTID + 1; i++) {
+		if (tp.tids[i] != 1)
+			continue;
+		close_table(i);
 	}
 }
 
