@@ -58,12 +58,12 @@ int rsmalltest(utable_t tid) {
     return 1;
 }
 int inserttest(utable_t tid) {
-    for (int i = 0; i < 18; i++) {
+    for (int i = 0; i < 100000; i++) {
         insert(tid, i, "aa");
     }
     d_print_dpage(tid, 0, DHEADER);
     d_print_tree(tid);
-    for (int i = 0; i < 18; i++) {
+    for (int i = 0; i < 100000; i++) {
         delete(tid, i);
     	d_print_tree(tid);
     }
@@ -222,6 +222,7 @@ void client_loop() {
 				break;
 			case 'q':
 				shutdown_db();
+				exit(0);
 				break;
 		}
 		while(getchar() != '\n');

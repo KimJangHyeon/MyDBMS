@@ -77,7 +77,7 @@ lru_change(int index) {
 	int cur_latest_index = bp->latest_index;
 	next_index = bp->buffers[index].cb.lru_next;
 	prev_index = bp->buffers[index].cb.lru_prev;
-	printf("index: %d\n", index);	
+	//printf("index: %d\n", index);	
 	if (cur_latest_index != index) {
 		if (prev_index != -1) {
 			bp->buffers[prev_index].cb.lru_next = next_index;
@@ -161,7 +161,7 @@ clean_buffer(int index) {
 
 int
 evict_buffer() {
-	printf("EVICT!!!\n\n");
+	//printf("EVICT!!!\n\n");
 	int target_index;
 	//===================== lru changed
 
@@ -192,12 +192,12 @@ evict_tid_buffer(utable_t tid) {
 	char isAllClean = 0;
 	int index, prev_index;
 	while(!isAllClean) {
-		printf("first while\n");
+		//printf("first while\n");
 		isAllClean = 1;
 		index = bp->victim_index;
 		while (index != -1) {
-			printf("index: %d\n", index);
-			printf("prev: %d\n", prev_index);
+			//printf("index: %d\n", index);
+			//printf("prev: %d\n", prev_index);
 			prev_index = bp->buffers[index].cb.lru_prev;
 			if (bp->buffers[index].cb.tid != tid) {
 				index = prev_index;
@@ -230,7 +230,7 @@ int
 access_buffer(utable_t tid, uoffset_t offset) {
 	//if has tid and offset==> (problem checked but it became targeted)
 	int index = find_buffer(tid, offset);
-	printf("access buffer\n");
+	//printf("access buffer\n");
 	//load page
 	if (index == -1) {
 		index = dequeue_index(bp->queue);
@@ -249,14 +249,14 @@ access_buffer(utable_t tid, uoffset_t offset) {
 		if (bp->buffers[index].cb.state == Prepare) 
 			bp->buffers[index].cb.state = Loading;
 		
-		printf("tid: %ld, o: %ld\n", tid, offset);
+		//printf("tid: %ld, o: %ld\n", tid, offset);
 		load_page(tid, offset, bp->buffers[index].frame);
 
 		if (bp->buffers[index].cb.state == Loading) 
 			bp->buffers[index].cb.state = Running;
 	}
 	lru_change(index);
-	d_print_lru_priority(bp);
+	//d_print_lru_priority(bp);
 
 	return index;
 
@@ -296,8 +296,8 @@ try_empty_buffer(utable_t tid, uoffset_t offset) {
 //check after pin++, if state != Running if so, find (tid, off)
 void
 read_buffer(utable_t tid, uoffset_t offset, Page* page) {
-	d_print_buffer_hpage(bp, tid, offset);
-	printf("read buffer(%ld, %ld)\n", tid, offset);
+	//d_print_buffer_hpage(bp, tid, offset);
+	//printf("read buffer(%ld, %ld)\n", tid, offset);
 	int index = access_buffer(tid, offset);
 	bp->buffers[index].cb.pin++;
 	memcpy(page, bp->buffers[index].frame, PAGESIZE);
@@ -306,7 +306,7 @@ read_buffer(utable_t tid, uoffset_t offset, Page* page) {
 
 void
 write_buffer(utable_t tid, uoffset_t offset, Page* page) {
-	printf("write buffer(%ld, %ld)\n", tid, offset);
+	//printf("write buffer(%ld, %ld)\n", tid, offset);
 	int index = access_buffer(tid, offset);
 	bp->buffers[index].cb.pin++;
 	if (!bp->buffers[index].cb.isDirty)
@@ -318,7 +318,7 @@ write_buffer(utable_t tid, uoffset_t offset, Page* page) {
 
 void
 dealloc_buffer(utable_t tid, uoffset_t offset) {
-	printf("dealloc_buffer(%ld, %ld)\n", tid, offset);
+	//printf("dealloc_buffer(%ld, %ld)\n", tid, offset);
 	int index = try_empty_buffer(tid, offset);
 	
 	if (index != -1)
@@ -337,5 +337,5 @@ shutdown_db(void) {
 
 void 
 debug_lru() {
-	d_print_lru_priority(bp);
+	//d_print_lru_priority(bp);
 }
