@@ -77,7 +77,7 @@ get_fd(utable_t tid) {
 }
 
 utable_t 
-open_table(char* path) {
+open_table(char* path, int num_col) {
 	int mid;
 	int high = tp.count - 1;
 	int low = 0;

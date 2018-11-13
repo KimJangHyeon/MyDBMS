@@ -1,7 +1,7 @@
 
 typedef struct _L_Record {
     ukey64_t key;
-    char value[120];
+    ukey64_t value[15];
 } Lrecord;
 
 typedef struct _I_Record {

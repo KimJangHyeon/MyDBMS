@@ -2,6 +2,7 @@
 typedef struct _Table {
 	utable_t tid;
 	int fd;
+	int num_col;
 	char name[TABLENAME];
 } Table;
 
@@ -12,7 +13,7 @@ typedef struct _TablePool {
 } TablePool;
 
 void init_tablepool();
-utable_t open_table(char*);
+utable_t open_table(char*, int num_col);
 int close_table(utable_t);
 void print_tp();
 char* get_path(utable_t);
