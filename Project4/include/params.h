@@ -36,3 +36,4 @@
 #define FDCLOSE			-1
 #define True			1
 #define False			0
+#define VUNUSED			18446744073709551615

@@ -24,12 +24,12 @@ int cut(int);
 void make_leaf(LeafPage*);
 void make_inter(InternalPage*);
 int get_left_index(uoffset_t left_offset, InternalPage* parent); 
-void insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, ustring_t value, LeafPage* leaf);
+void insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, udata_t[], LeafPage* leaf);
 void insert_into_new_root(utable_t, ukey64_t, ukey64_t, uoffset_t, uoffset_t, NodePage*, NodePage*);
 void insert_into_node(utable_t, uoffset_t, int, ukey64_t, uoffset_t, InternalPage*);
 void insert_into_node_after_splitting(int, utable_t, ukey64_t, uoffset_t, uoffset_t, InternalPage*);
 void insert_into_parent(utable_t, ukey64_t, ukey64_t, uoffset_t, uoffset_t, NodePage*, NodePage*);
-void insert_into_leaf_after_splitting(uoffset_t, utable_t, ukey64_t, ustring_t, LeafPage*); 
+void insert_into_leaf_after_splitting(uoffset_t, utable_t, ukey64_t, udata_t[], LeafPage*); 
 
 //delete
 void delete_entry(utable_t tid, uoffset_t, uoffset_t, ukey64_t, NodePage*);
@@ -131,7 +131,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
  */
 
 void
-insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, ustring_t value, LeafPage* leaf) {
+insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, udata_t value[], LeafPage* leaf) {
 	int i, insertion_point;
 
 	insertion_point = 0;
@@ -579,15 +579,15 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	//printf("delete entry done(%d)\n", --entry_count);
 }
 
-void
-find(utable_t tid, ukey64_t key, ustring_t* str) {
+udata_t* 
+find(utable_t tid, ukey64_t key) {
 	LeafPage* lp = (LeafPage*)malloc(sizeof(LeafPage));
 	int i;
 	find_leaf(tid, key, lp);
 
 	//empty db
 	if(lp == NULL) {
-		free((*str));
+		free((*));
 		*str = NULL;
 		return;
 	}
@@ -605,8 +605,9 @@ find(utable_t tid, ukey64_t key, ustring_t* str) {
 }
 
 void
-insert(utable_t tid, ukey64_t key, ustring_t value) {
+insert(utable_t tid, ukey64_t key, udata_t value[]) {
 	uoffset_t node_offset;
+	unumber_t num_col;
 	ustring_t str = (char*)malloc(sizeof(char) * VALUESIZE);
 	LeafPage* leaf_page = (LeafPage*)malloc(sizeof(LeafPage));
 	HeaderPage* hp = (HeaderPage*)malloc(sizeof(HeaderPage));
@@ -616,6 +617,13 @@ insert(utable_t tid, ukey64_t key, ustring_t value) {
 	node_offset = hp->r_page_offset;
 	find(tid, key, &str);
 	
+	num_col = get_col(tid);
+	//reset check value as num_col
+	
+	for (int i = num_col - 1; i < 15; i++) {
+		value[i] = VUNUSED;
+	}
+
 	//already have same key
 	if (str != NULL) {
 		return;

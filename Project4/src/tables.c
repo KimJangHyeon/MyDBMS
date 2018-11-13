@@ -34,9 +34,6 @@ get_tid() {
 	return TIDFULL;
 }
 
-
-
-
 char*
 get_path(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) {
@@ -79,6 +76,21 @@ get_fd(utable_t tid) {
 	}
 }
 
+put_col(utable_t tid, unumber_t num_col) {
+	for (int i = 0; i < tp.count; i++) {
+		if (tp.tables[i].tid == tid) {
+			tp.tables[i].num_col = num_col;
+			return;
+		}
+	}
+}
+
+get_col(utable_t tid) {
+	for (int i = 0; i < tp.count; i++) { 
+		if (tp.tables[i].tid == tid) 
+			return tp.tables[i].num_col;
+	}
+}
 
 //case --> path & num_col do not match 
 utable_t 
@@ -91,6 +103,7 @@ open_table(char* path, unumber_t num_col) {
 	int compare;
 	int fd;
 	char* dir = "datas/";
+	HeaderPage hp;
 
 	Table* temp = (Table*)malloc(sizeof(Table));
 
@@ -116,11 +129,14 @@ open_table(char* path, unumber_t num_col) {
 		open_disk(tid);
 		size = disk_size(tid);
 		close_disk(tid);
-		if (size == 0) 
+		if (size == 0) { 
 			init_table(tid, num_col);
+			put_col(tid, num_col);
+		}
 		else {
 			//check header->num_col == num_col
-			
+			load_page(tid, 0, (Page*)&hp);
+			put_col(tid, hp.num_col);
 		}
 		return 1;
 	}
