@@ -20,6 +20,7 @@ typedef struct _HeaderPage {
             uoffset_t r_page_offset;
             unumber_t number_of_pages;
             unumber_t number_of_free_pages;
+			unumber_t number_of_column;
         };
         ubyte_t reserved[PAGESIZE];
     };  

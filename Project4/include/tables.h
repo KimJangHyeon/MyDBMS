@@ -13,7 +13,7 @@ typedef struct _TablePool {
 } TablePool;
 
 void init_tablepool();
-utable_t open_table(char*, int num_col);
+utable_t open_table(char*, unumber_t);
 int close_table(utable_t);
 void print_tp();
 char* get_path(utable_t);

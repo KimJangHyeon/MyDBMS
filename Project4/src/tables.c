@@ -34,6 +34,9 @@ get_tid() {
 	return TIDFULL;
 }
 
+
+
+
 char*
 get_path(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) {
@@ -79,7 +82,7 @@ get_fd(utable_t tid) {
 
 //case --> path & num_col do not match 
 utable_t 
-open_table(char* path, int num_col) {
+open_table(char* path, unumber_t num_col) {
 	int mid;
 	int high = tp.count - 1;
 	int low = 0;
@@ -103,7 +106,7 @@ open_table(char* path, int num_col) {
 	memcpy(temp->name + strlen(dir), path, sizeof(char) * strlen(path));
 	temp->tid = tid;
 	temp->fd = FDCLOSE;
-	temp->num_col = num_col;
+	temp->num_col = 0;
 
 	if (high == -1) {
 		memcpy (&(tp.tables[0]), temp, sizeof(Table));
@@ -114,9 +117,10 @@ open_table(char* path, int num_col) {
 		size = disk_size(tid);
 		close_disk(tid);
 		if (size == 0) 
-			init_table(tid);
+			init_table(tid, num_col);
 		else {
 			//check header->num_col == num_col
+			
 		}
 		return 1;
 	}
