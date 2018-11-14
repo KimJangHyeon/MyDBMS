@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "types.h"
 #include "params.h"
 #include "queue.h"
@@ -202,7 +203,7 @@ void client_loop() {
 			case 'i':
 				scanf("%ld %ld", &tid, &key);
 				j = 0;
-
+				memset(value, 0, sizeof(udata_t) * 15);
 				// one missing input	
 				do {
 					if (j < 15) 
@@ -217,12 +218,17 @@ void client_loop() {
 			case 'f':
 				scanf("%ld %ld", &tid, &key);
 				temp = find(tid, key);
-				printf("find: ");
-				for (int i = 0; i < 15; i++) {
-					if (temp[i] != VUNUSED)
-						printf("%ld ", temp[i]);
-					else
-						break;
+				if (temp == NULL) {
+					printf("no such a key!!\n");
+				}
+				else {
+					printf("find: ");
+					for (int i = 0; i < 15; i++) {
+						if (temp[i] != VUNUSED)
+							printf("%ld ", temp[i]);
+						else
+							break;
+					}
 				}
 				printf("\n");
 				break;

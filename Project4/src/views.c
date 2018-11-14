@@ -624,15 +624,16 @@ insert(utable_t tid, ukey64_t key, udata_t value[]) {
 	num_col = get_col(tid);
 	//reset check value as num_col
 	
+	for (int i = num_col - 1; i < 15; i++) {
+		value[i] = VUNUSED;
+	}
+
 	printf("insert: value: ");
 	for (int i = 0; i < 15; i++) {
 		printf("%ld ", value[i]);
 	}
 	printf("\n");
 
-	for (int i = num_col - 1; i < 15; i++) {
-		value[i] = VUNUSED;
-	}
 
 	//already have same key
 	if (temp != NULL) {
