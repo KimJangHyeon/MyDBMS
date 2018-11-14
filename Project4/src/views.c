@@ -10,6 +10,7 @@
 #include "lock.h"
 #include "queue.h"
 #include "buffers.h"
+#include "tables.h"
 #include "views.h"
 #include "inits.h"
 #include "utils.h"
@@ -298,7 +299,7 @@ insert_into_parent(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 }
 
 void
-insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, ukey64_t key, ustring_t value, LeafPage* leaf) {
+insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, ukey64_t key, udata_t value[], LeafPage* leaf) {
 	LeafPage* new_leaf = (LeafPage*)malloc(sizeof(LeafPage));
 	Lrecord* temp_records = (Lrecord*)malloc(sizeof(Lrecord) * leaf_order);
 	int insertion_index, split, i, j;
@@ -582,25 +583,27 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 udata_t* 
 find(utable_t tid, ukey64_t key) {
 	LeafPage* lp = (LeafPage*)malloc(sizeof(LeafPage));
+	udata_t* ret = (udata_t*)malloc(sizeof(udata_t)*15);
+
 	int i;
 	find_leaf(tid, key, lp);
 
 	//empty db
 	if(lp == NULL) {
-		free((*));
-		*str = NULL;
-		return;
+		free(ret);
+		ret = NULL;
+		return ret;
 	}
 	for(i = 0; i < lp->header_top.num_keys; i++) 
 		if (lp->record[i].key == key) break;
 	if(i == lp->header_top.num_keys) {
-		free(*str);
-		*str = NULL;
-		return;
+		free(ret);
+		ret = NULL;
+		return ret;
 	}
 	else {
-		memcpy(*str, lp->record[i].value, VALUESIZE);
-		return;
+		memcpy(ret, lp->record[i].value, VALUESIZE);
+		return ret;
 	}
 }
 
@@ -608,24 +611,31 @@ void
 insert(utable_t tid, ukey64_t key, udata_t value[]) {
 	uoffset_t node_offset;
 	unumber_t num_col;
-	ustring_t str = (char*)malloc(sizeof(char) * VALUESIZE);
+	//ustring_t str = (char*)malloc(sizeof(char) * VALUESIZE);
+	udata_t* temp;
 	LeafPage* leaf_page = (LeafPage*)malloc(sizeof(LeafPage));
 	HeaderPage* hp = (HeaderPage*)malloc(sizeof(HeaderPage));
 
 	read_buffer(tid, HEADEROFFSET, (Page*)hp);
 
 	node_offset = hp->r_page_offset;
-	find(tid, key, &str);
+	temp = find(tid, key);
 	
 	num_col = get_col(tid);
 	//reset check value as num_col
 	
+	printf("insert: value: ");
+	for (int i = 0; i < 15; i++) {
+		printf("%ld ", value[i]);
+	}
+	printf("\n");
+
 	for (int i = num_col - 1; i < 15; i++) {
 		value[i] = VUNUSED;
 	}
 
 	//already have same key
-	if (str != NULL) {
+	if (temp != NULL) {
 		return;
 	}
 
@@ -652,23 +662,22 @@ insert(utable_t tid, ukey64_t key, udata_t value[]) {
 	
 	//buffer lock change ( read_lock -> write+up lock ) { node_offset }
 	insert_into_leaf_after_splitting(node_offset, tid, key, value, leaf_page);
-	
-
 }
 
 void
 delete(utable_t tid, ukey64_t key) {
-	ustring_t str = (char*)malloc(sizeof(char) * VALUESIZE);
+	//ustring_t str = (char*)malloc(sizeof(char) * VALUESIZE);
+	udata_t* temp;
 	uoffset_t koffset;
 	LeafPage* key_leaf = (LeafPage*)malloc(sizeof(LeafPage));
 
 
 
-	find(tid, key, &str);
+	temp = find(tid, key);
 	koffset = find_leaf(tid, key, key_leaf);
 
-	if(str != NULL && key_leaf != NULL)
+	if(temp != NULL && key_leaf != NULL)
 		delete_entry(tid, koffset, 0, key, (NodePage*)key_leaf);
 
-	free(str);
+	free(temp);
 }

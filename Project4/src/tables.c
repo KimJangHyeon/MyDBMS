@@ -76,6 +76,7 @@ get_fd(utable_t tid) {
 	}
 }
 
+void
 put_col(utable_t tid, unumber_t num_col) {
 	for (int i = 0; i < tp.count; i++) {
 		if (tp.tables[i].tid == tid) {
@@ -85,6 +86,7 @@ put_col(utable_t tid, unumber_t num_col) {
 	}
 }
 
+unumber_t
 get_col(utable_t tid) {
 	for (int i = 0; i < tp.count; i++) { 
 		if (tp.tables[i].tid == tid) 
@@ -136,7 +138,7 @@ open_table(char* path, unumber_t num_col) {
 		else {
 			//check header->num_col == num_col
 			load_page(tid, 0, (Page*)&hp);
-			put_col(tid, hp.num_col);
+			put_col(tid, hp.number_of_column);
 		}
 		return 1;
 	}
@@ -173,7 +175,7 @@ open_table(char* path, unumber_t num_col) {
 	size = disk_size(tid);
 	close_disk(tid);
 	if (size == 0) 
-		init_table(tid);
+		init_table(tid, num_col);
 	
 	return tid;	
 }

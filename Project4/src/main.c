@@ -13,7 +13,7 @@
 #include "utils.h"
 
 #define NTEST 10
-
+/*
 int storetest(utable_t);
 int reversetest(utable_t);
 int smalltest(utable_t);
@@ -141,16 +141,17 @@ print_test(int i, bool isStart) {
     else 
         printf("done");
     printf("\n*\n*\n");
-}
+}*/
 void test(utable_t tid) {
-    int ret;
+/*
+	int ret;
     for (int i = 0; i < NTEST; i++) {
         print_test(i, True);
         ret = testfunc[i](tid);
         print_test(i, False);
         if (!ret) 
             break;
-    }   
+    }   */
 }
 
 char client() {
@@ -165,14 +166,16 @@ void client_loop() {
     char table_path[64];
 	utable_t tid;
 	int res;
+	int j = 0;
+	unumber_t num_col;
 	ukey64_t key;
-	ustring_t value = (ustring_t)malloc(sizeof(char)* 120);
-
+	udata_t* value = (udata_t*)malloc(sizeof(udata_t)* 15);
+	udata_t* temp;
 	while(1) {
 		switch(client()) {
 			case 'o':
-				scanf("%s", table_path);
-				tid = open_table(table_path);
+				scanf("%s %ld", table_path, &num_col);
+				tid = open_table(table_path, num_col);
 				if (tid == 0) {
 					printf("the table is already opened!\n");
 					break;
@@ -197,7 +200,14 @@ void client_loop() {
 					break;
 				}
 			case 'i':
-				scanf("%ld %ld %s", &tid, &key, value);
+				scanf("%ld %ld", &tid, &key);
+				j = 0;
+
+				// one missing input	
+				do {
+					if (j < 15) 
+						scanf("%ld", &(value[j++]));
+				} while(getchar() != '\n'); 
 				insert(tid, key, value);
 				break;
 			case 'd':
@@ -206,8 +216,15 @@ void client_loop() {
 				break;
 			case 'f':
 				scanf("%ld %ld", &tid, &key);
-				find(tid, key, &value);
-				printf("find: %s\n", value);
+				temp = find(tid, key);
+				printf("find: ");
+				for (int i = 0; i < 15; i++) {
+					if (temp[i] != VUNUSED)
+						printf("%ld ", temp[i]);
+					else
+						break;
+				}
+				printf("\n");
 				break;
 			case 't':
 				scanf("%ld", &tid);
