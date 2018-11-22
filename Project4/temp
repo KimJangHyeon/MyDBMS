@@ -1,0 +1,4 @@
+
+void catalog_insert(LeafPage* keaf, unumber_t num_col, ukey64_t value[NMAXVAL])
+void catalog_insert_split(LeaafPage* leaf, unumber_t num_col, unumber_t num_key, value);
+void catalog_delete(LeafPage* keaf, unumber_t num_col, unumber_t num_key)

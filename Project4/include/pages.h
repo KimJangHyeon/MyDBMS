@@ -63,11 +63,23 @@ typedef struct _NodePage {
 	};
 } NodePage;
 
+typedef struct _CatalogInfo {
+	udata_t min;
+	udata_t max;
+} CatalogInfo;
+
+typedef struct _Catalog {
+	CatalogInfo info[NMAXVAL];	
+} Catalog;
+
 typedef struct _LeafPage {
 	union {
 		struct {
-			union {	
-				PageHeaderTop header_top;
+			union {
+				struct {
+					PageHeaderTop header_top;
+					Catalog catalog;
+				};
 				ubyte_t reserved[LHEADERSIZE];
 			};											//120
 			uoffset_t sibling;							//8

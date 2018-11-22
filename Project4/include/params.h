@@ -8,9 +8,12 @@
 #define TABLENAME		32
 #define NTABLE			10
 #define NTID			10
-#define LRECORD			32
+#define LRECORD			30
 #define IRECORD			249
 #define FREEINIT		7
+#define NMAXVAL			15
+#define CATALOGINITMIN	1844674407370955164
+#define CATALOGINITMAX	0
 
 //============= OFFSET ================
 //init
@@ -23,7 +26,7 @@
 #define PAGEHSIZE		128
 #define PAGETHSIZE		64
 #define PAGEBHSIZE		64
-#define LHEADERSIZE		120
+#define LHEADERSIZE		376
 #define IHEADERSIZE		112
 #define VALUESIZE		120
 #define IRECORDSIZE		16
