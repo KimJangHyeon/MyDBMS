@@ -6,6 +6,27 @@
 #include "join.h"
 
 
+int JoinSet::get_tid_index(utable_t tid, int index, char &isColExist) {
+	int ret_index = 0;
+	for (std::vector<TableInfo>::iterator iter = table_info.begin(); iter != table_info.end(); ++iter) {
+		if (tid != iter->tid) {
+			ret_index++;
+			continue;
+		}
+		for (std::vector<ColInfo>::iterator iter1 = iter->col.begin(); iter1 != iter->col.end(); ++iter1) {
+				if(iter1->index == index) {
+					isColExist = true;
+					break;
+				}
+			}
+		isColExist = false;
+		return ret_index;
+	}
+	isColExist = false;
+	return -1;
+}
+
+//make table_info
 void JoinSet::parser(std::string query) {
 	int num_join = 0;
 	size_t pos = 0;
@@ -61,8 +82,85 @@ void JoinSet::parser(std::string query) {
 		
 		join_info.inputS = std::pair<utable_t, int>(ts, cols);
 		this->join_info.push_back(join_info);
+
+		int index;
+		char isColExist;
+		TableInfo table_info;
+		ColInfo col_info;
+		index = get_tid_index(join_info.inputR.first, join_info.inputR.second, isColExist);	
+		if (index == -1) {
+			table_info.tid = join_info.inputR.first;
+			col_info.index = join_info.inputR.second;
+			table_info.col.push_back(col_info);
+			
+			table_info.join_data = new JoinData;
+			table_info.join_data.meta.tid = tid;
+			table_info.join_data.meta.col_index.push_back(join_info.inputR.second);
+
+			this->table_info.push_back(table_info);
+		}
+		else if (index != -1 && !isColExist) {
+			col_info.index = join_info.inputR.second;
+			this->table_info[index].col.push_back(col_info);
+
+			this->table_info[index].join_data.meta.col_index.push_back(join_info.inputR.second);
+			
+		}
+		table_info.col.clear();
+		table_info = {};
+		index = get_tid_index(join_info.inputS.first, join_info.inputS.second, isColExist);	
+		std::cout << index << std::endl;
+		if (index == -1) {
+			table_info.tid = join_info.inputS.first;
+			col_info.index = join_info.inputS.second;
+			table_info.col.push_back(col_info);
+			
+			table_info.join_data = new JoinData;
+			table_info.join_data.meta.tid = tid;
+			table_info.join_data.meta.col_index.push_back(join_info.inputS.second);
+			
+			this->table_info.push_back(table_info);
+		}
+		else if (index != -1 && !isColExist) {
+			col_info.index = join_info.inputS.second;
+			this->table_info[index].col.push_back(col_info);
+		
+			this->table_info[index].join_data.meta.col_index.push_back(join_info.inputS.second);	
+		}
 	}
 	
+}
+
+bool col_index_cmp(const ColInfo &col1, const ColInfo &col2) {
+	return col1.index > col2.index;
+}
+
+void JoinSet::scanner() {
+	utable_t tid;
+	std::vector<ColInfo> cols;
+	int num_col = 0;
+	int* para_col;
+	udata_t* min_col;
+	udata_t* max_col;
+	unumber num_key;
+	int i;
+	for (std::vector<TableInfo>::iterator iter = this->table_info.begin(); iter != this->table_info.end(); ++iter) {
+		cols.clear();
+		tid = iter->tid;
+		num_col = iter->col.size();
+		para_col = new int[num_col];
+		i = 0;
+
+		sort(iter->join_data.meta.col_index.begin(), iter->join_data.meta.col_index.end());
+		sort(iter->col.begin(), iter->col.end(), col_index_cmp);
+
+		num_key = get_all_record(tid, iter->col, iter->join_data);
+		/*for (std::vector<TableInfo>::iterator col_iter = iter->col.begin(); col_iter != iter->col.end(); ++ col_iter) {
+			para_col[i++] = col_iter->index;
+		}*/
+	}
+
+
 }
 
 void JoinSet::join_info_print() {
@@ -74,6 +172,19 @@ void JoinSet::join_info_print() {
 	}
 }
 
-void JoinSet::scanner() {
-	
+void JoinSet::table_info_print() {
+	for (std::vector<TableInfo>::iterator iter = this->table_info.begin(); iter != this->table_info.end(); ++iter) {
+		std::cout << iter->tid;
+		std::cout << ": ";
+		for (std::vector<ColInfo>::iterator iter1 = iter->col.begin(); iter1 != iter->col.end(); ++iter1) {
+			std::cout << iter1->index;
+			std::cout << "(";
+			std::cout << iter1->min;
+			std::cout << ", ";
+			std::cout << iter1->max;
+			std::cout << ")";
+		}
+		std::cout << std::endl;
+	}
 }
+

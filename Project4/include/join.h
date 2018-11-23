@@ -16,8 +16,8 @@ typedef struct _JoinData {
 } JoinData;
 
 typedef struct _TableInfo {
-	unumber_t num_key;
 	utable_t tid;
+	unumber_t num_key;
 	std::vector<ColInfo> col;
 	JoinData* join_data;
 } TableInfo;
@@ -51,14 +51,15 @@ class JoinSet {
 	private:
 		int num_join;
 		std::vector<JoinInfo> join_info; 
-
-	public:
 		std::vector<TableInfo> table_info;
-		
+		int get_tid_index(utable_t, int, char&);
+	public:
+		std::vector<JoinData> join_data;
 		void parser(std::string query);		//return num_join//join_info setting + make TableInfo
 		void scanner();					//sort<table_info> by join order
 		void sort_tables();
 		void join_info_print();
+		void table_info_print();
 		std::vector<JoinInfo> getValidJoin(std::vector<std::pair<utable_t, int>> inputR);	//need for sort_tables
 
 };

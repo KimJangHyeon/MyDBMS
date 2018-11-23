@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 #include "params.h"
 #include "types.h"
@@ -812,8 +813,36 @@ erase(utable_t tid, ukey64_t key) {
 
 
 LeafPage* 
-get_left_leaf(utable_t tid, int cols[]) {
-	LeafPage* lp = (LeafPage*)malloc(sizeof(LeafPage));
+get_left_leaf(utable_t tid) {
+	uoffset_t off;
+	NodePage* np = (NodePage*)malloc(sizeof(NodePage));
+	InternalPage* ip;// = (InternalPage*)malloc(sizeof(InternalPage));
+	LeafPage* lp;// = (LeafPage*)malloc(sizeof(LeafPage));
 	HeaderPage* hp = (HeaderPage*)malloc(sizeof(HeaderPage));
 	read_buffer(tid, 0, (Page*)hp);
+	off = hp->r_page_offset;
+	if (off == 0) {
+		//has no tree
+		return NULL;
+	}
+
+	while(off != 0) {
+		read_buffer(tid, off, (Page*)np);
+		if(np->header_top.isLeaf) {
+			lp = (LeafPage*)np;
+			return lp;
+		}
+		else {
+			ip = (InternalPage*)np;
+			off = ip->record[0].offset;
+		}
+	}
+
+}
+
+unumber_t 
+get_all_record(utable_t tid, std::vector<ColInfo> col_infos, std::vector<JoinData> join_datas) {
+	LeafPage* lp = get_left_leaf(tid);
+	
+	
 }
