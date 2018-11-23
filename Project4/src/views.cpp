@@ -38,6 +38,9 @@ void remove_entry_from_node(utable_t, uoffset_t, uoffset_t, unumber_t, ukey64_t,
 void adjust_root(utable_t, uoffset_t, NodePage*);
 int get_neighbor_index(utable_t tid, uoffset_t offset, NodePage* knode);
 
+//join
+LeafPage* get_left_leaf(utable_t tid, int cols[]);
+
 int entry_count = 0;
 int node_count = 0;
 int adjust_count = 0;
@@ -805,4 +808,12 @@ erase(utable_t tid, ukey64_t key) {
 		delete_entry(tid, koffset, 0, key, (NodePage*)key_leaf);
 
 	free(temp);
+}
+
+
+LeafPage* 
+get_left_leaf(utable_t tid, int cols[]) {
+	LeafPage* lp = (LeafPage*)malloc(sizeof(LeafPage));
+	HeaderPage* hp = (HeaderPage*)malloc(sizeof(HeaderPage));
+	read_buffer(tid, 0, (Page*)hp);
 }
