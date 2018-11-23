@@ -118,7 +118,7 @@ d_print_mnode(NodePage np) {
                 for( int i = 0; i <= lp.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", lp.record[i].key);
-                        printf("value: %s\n", (lp.record[i].value));
+                        //printf("value: %s\n", (lp.record[i].value));
                 }
         }
         else {

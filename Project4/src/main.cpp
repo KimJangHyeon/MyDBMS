@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
+#include <vector>
+
 #include "types.h"
 #include "params.h"
 #include "queue.h"
@@ -10,6 +12,7 @@
 #include "disks.h"
 #include "buffers.h"
 #include "views.h"
+#include "join.h"
 //========================
 #include "utils.h"
 
@@ -203,7 +206,11 @@ void client_loop() {
 			case 'i':
 				scanf("%ld %ld", &tid, &key);
 				j = 0;
-				memset(value, 0, sizeof(udata_t) * 15);
+				//memset(value, 0, sizeof(udata_t) * 15);
+				for (int i = 0; i < 15; i++) {
+					value[i] = 0;
+				}
+				
 				// one missing input	
 				do {
 					if (j < 15) 
@@ -213,7 +220,7 @@ void client_loop() {
 				break;
 			case 'd':
 				scanf("%ld %ld", &tid, &key);
-				delete(tid, key); 
+				erase(tid, key); 
 				break;
 			case 'f':
 				scanf("%ld %ld", &tid, &key);
@@ -267,14 +274,15 @@ main (int argc, char ** argv) {
     if(argc > 1 && argc < 3) {
 		num_buf = atoi(argv[1]);
     } else {
-        panic("panic for input(buffer.c)");
+        panic((char*)"panic for input(buffer.c)");
     }
-	/*
-	init_tablepool();
-	utable_t tid = open_table(table_path);
-	test(tid);
-	*/
-	init_db(num_buf);
-	client_loop();
+	
+	JoinSet join_set;
+	join_set.parser("1.1=2.2&1.3=3.3");
+
+	//init_db(num_buf);
+	//client_loop();
+	
+	
 	//test(tid);
 }

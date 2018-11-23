@@ -790,7 +790,7 @@ insert(utable_t tid, ukey64_t key, udata_t value[]) {
 }
 
 void
-delete(utable_t tid, ukey64_t key) {
+erase(utable_t tid, ukey64_t key) {
 	//ustring_t str = (char*)malloc(sizeof(char) * VALUESIZE);
 	udata_t* temp;
 	uoffset_t koffset;
