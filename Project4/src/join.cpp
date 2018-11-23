@@ -57,7 +57,7 @@ void JoinSet::parser(std::string query) {
 		std::cout << cols << std::endl;	
 		cols = std::atoi(iter->c_str());
 
-		join_info.inputR.push_back(std::pair<utable_t, int>(tr, colr));
+		join_info.inputR = std::pair<utable_t, int>(tr, colr);
 		
 		join_info.inputS = std::pair<utable_t, int>(ts, cols);
 		this->join_info.push_back(join_info);
@@ -65,3 +65,15 @@ void JoinSet::parser(std::string query) {
 	
 }
 
+void JoinSet::join_info_print() {
+	for (std::vector<JoinInfo>::iterator iter = this->join_info.begin(); iter != this->join_info.end(); ++iter) {
+		std::cout << iter->inputR.first;
+		std::cout << iter->inputR.second;
+		std::cout << iter->inputS.first;
+		std::cout << iter->inputS.second << std::endl;
+	}
+}
+
+void JoinSet::scanner() {
+	
+}

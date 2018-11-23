@@ -279,7 +279,7 @@ main (int argc, char ** argv) {
 	
 	JoinSet join_set;
 	join_set.parser("1.1=2.2&1.3=3.3");
-
+	join_set.join_info_print();
 	//init_db(num_buf);
 	//client_loop();
 	

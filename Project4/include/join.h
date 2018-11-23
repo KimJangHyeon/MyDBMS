@@ -30,7 +30,7 @@ typedef struct _JoinNode {
 } JoinNode;
 
 typedef struct _JoinInfo {
-	std::vector<std::pair<utable_t, int>> inputR;
+	std::pair<utable_t, int> inputR;
 	std::pair<utable_t, int> inputS;
 
 } JoinInfo;
@@ -58,6 +58,7 @@ class JoinSet {
 		void parser(std::string query);		//return num_join//join_info setting + make TableInfo
 		void scanner();					//sort<table_info> by join order
 		void sort_tables();
+		void join_info_print();
 		std::vector<JoinInfo> getValidJoin(std::vector<std::pair<utable_t, int>> inputR);	//need for sort_tables
 
 };
