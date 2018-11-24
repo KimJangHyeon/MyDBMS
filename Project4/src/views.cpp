@@ -1,3 +1,4 @@
+
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -844,7 +845,7 @@ get_left_leaf(utable_t tid) {
 }
 
 unumber_t 
-scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
+scan_table(utable_t tid, std::vector<ColInfo>* col_infos, JoinData* join_datas) {
 	LeafPage* lp = get_left_leaf(tid);
 	ukey32_t num_keys;
 	unumber_t global_num_keys = 0;
@@ -854,20 +855,20 @@ scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 	if (lp == NULL) {
 		//is tree empty
 	}
-	if (col_infos[0].index == 0) {
+	if ((*col_infos)[0].index == 0) {
 		//init_i = 1;
 		if (lp->header_top.num_keys == 0) {
 			printf("error left lp is 0\n");
 			exit(0);
 		}
-		col_infos[0].min = lp->record[0].key;
+		(*col_infos)[0].min = lp->record[0].key;
 	} else {
 		//init_i = 0;
 	}
 
 	do {
 		//setting min max
-		for (std::vector<ColInfo>::iterator col_iter = col_infos.begin(); col_iter != col_infos.end(); ++col_iter) {
+		for (std::vector<ColInfo>::iterator col_iter = (*col_infos).begin(); col_iter != (*col_infos).end(); ++col_iter) {
 			if (col_iter->index == 0)
 				continue;
 			if (lp->catalog.info[col_iter->index - 1].min < col_iter->min) {
@@ -885,7 +886,7 @@ scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 		//get col data(make op)
 		for (int i = 0; i < num_keys; i++) {
 			op.clear();
-			for (std::vector<ColInfo>::iterator col_iter = col_infos.begin(); col_iter != col_infos.end(); ++col_iter) {
+			for (std::vector<ColInfo>::iterator col_iter = (*col_infos).begin(); col_iter != (*col_infos).end(); ++col_iter) {
 				if (col_iter->index == 0) {
 					op.push_back(lp->record[i].key);
 				} else {
@@ -906,12 +907,12 @@ scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 		//init_i = 0;
 	} while(1);
 
-	if (col_infos[0].index == 0) {
+	if ((*col_infos)[0].index == 0) {
 		if (lp->header_top.num_keys == 0) {
 			printf("error left lp is 0\n");
 			exit(0);
 		}
-		col_infos[0].max = lp->record[num_keys - 1].key;	
+		(*col_infos)[0].max = lp->record[num_keys - 1].key;	
 	}
 	return global_num_keys;
 }

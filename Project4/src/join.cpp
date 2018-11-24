@@ -166,6 +166,8 @@ void JoinSet::scanner() {
 	udata_t* max_col;
 	unumber_t num_key = 0;
 	int i;
+
+	//get table info, join_data	
 	for (std::vector<TableInfo>::iterator iter = this->table_info.begin(); iter != this->table_info.end(); ++iter) {
 		cols.clear();
 		tid = iter->tid;
@@ -176,14 +178,13 @@ void JoinSet::scanner() {
 		sort(iter->join_data->meta[0].col_index.begin(), iter->join_data->meta[0].col_index.end());
 		sort(iter->col.begin(), iter->col.end(), col_index_cmp);
 
-		num_key = scan_table(tid, iter->col, iter->join_data);
-		/*for (std::vector<TableInfo>::iterator col_iter = iter->col.begin(); col_iter != iter->col.end(); ++ col_iter) {
-			para_col[i++] = col_iter->index;
-		}*/
+		num_key = scan_table(tid, &(iter->col), iter->join_data);
+		
+		std::cout << "num key: ";
+		std::cout << num_key << std::endl;
 	}
-	
-	std::cout << "num key: ";
-	std::cout << num_key << std::endl;
+
+	//get join ordering
 
 }
 
