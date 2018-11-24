@@ -272,19 +272,56 @@ main (int argc, char ** argv) {
 	
     char* table_path;
 	int num_buf;
+	utable_t tid1, tid2;
+	udata_t* value;
     if(argc > 1 && argc < 3) {
 		num_buf = atoi(argv[1]);
     } else {
         panic((char*)"panic for input(buffer.c)");
     }
+//	init_db(num_buf);
+//	client_loop();
+	init_db(num_buf);
+
+	tid1 = open_table("a", 3);
+	tid2 = open_table("b", 3);
+
+	value = (udata_t*)malloc(sizeof(udata_t) * 15);
+	int j = 0;
+	for (int i = 0; i < 15; i++) {
+		value[i] = 0;
+	}
+				
+	// one missing input	
+	//do {
+	//	if (j < 15) 
+	//		scanf("%ld", &(value[j++]));
+	//} while(getchar() != '\n'); 
+
+	value[0] = 2;
+	value[1] = 3;
+	insert(tid1, 1, value);
+	value[0] = 5;
+	value[1] = 6;
+	insert(tid2, 4, value);
+	value[0] = 8;
+	value[1] = 9;
 	
+	insert(tid1, 7, value);
+	value[0] = 11;
+	value[1] = 12;
+	
+	insert(tid2, 10, value);
+
 	JoinSet join_set;
+
 	join_set.parser("1.1=2.2");
+	join_set.scanner();
 	join_set.join_info_print();
 	join_set.table_info_print();
-	//init_db(num_buf);
-	//client_loop();
-	
+	close_table(1);
+	close_table(2);
+
 	
 	//test(tid);
 }

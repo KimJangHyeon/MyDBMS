@@ -883,6 +883,7 @@ scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 		//get col data(make op)
 		for (int i = 0; i < num_keys; i++) {
 			for (std::vector<ColInfo>::iterator col_iter = col_infos.begin(); col_iter != col_infos.end(); ++col_iter) {
+				op.clear();
 				if (col_iter->index == 0) {
 					op.push_back(lp->record[i].key);
 				} else {

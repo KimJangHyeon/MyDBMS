@@ -86,18 +86,20 @@ void JoinSet::parser(std::string query) {
 		join_info.inputS = std::pair<utable_t, int>(ts, cols);
 		this->join_info.push_back(join_info);
 
+		//"========= join info done =========
+
 		int index;
 		char isColExist;
 		utable_t tid;
 		TableInfo table_info;
 		ColInfo col_info;
-		index = get_tid_index(join_info.inputR.first, join_info.inputR.second, isColExist);	
+		index = get_tid_index(join_info.inputR.first, join_info.inputR.second - 1, isColExist);	
 		if (index == -1) {
 			tid = join_info.inputR.first;
 			table_info.tid = tid; //join_info.inputR.first;
-			col_info.index = join_info.inputR.second;
-			col_info.min = MAXINT;
-			col_info.max = MININT;
+			col_info.index = join_info.inputR.second - 1;
+			col_info.min = CATALOGINITMIN;
+			col_info.max = CATALOGINITMAX;
 			table_info.col.push_back(col_info);
 			
 			TableMeta meta;
@@ -105,29 +107,29 @@ void JoinSet::parser(std::string query) {
 
 			table_info.join_data = new JoinData;
 			table_info.join_data->meta.push_back(meta);
-			table_info.join_data->meta[0].col_index.push_back(join_info.inputR.second);
+			table_info.join_data->meta[0].col_index.push_back(join_info.inputR.second - 1);
 
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
-			col_info.index = join_info.inputR.second;
-			col_info.min = MAXINT;
-			col_info.max = MININT;
+			col_info.index = join_info.inputR.second - 1;
+			col_info.min = CATALOGINITMIN;
+			col_info.max = CATALOGINITMAX;
 			this->table_info[index].col.push_back(col_info);
 
-			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputR.second);
+			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputR.second - 1);
 			
 		}
 		table_info.col.clear();
 		table_info = {};
-		index = get_tid_index(join_info.inputS.first, join_info.inputS.second, isColExist);	
+		index = get_tid_index(join_info.inputS.first, join_info.inputS.second - 1, isColExist);	
 		std::cout << index << std::endl;
 		if (index == -1) {
 			tid = join_info.inputS.first;
 			table_info.tid = tid; //join_info.inputS.first;
-			col_info.index = join_info.inputS.second;
-			col_info.min = MAXINT;
-			col_info.max = MININT;
+			col_info.index = join_info.inputS.second - 1;
+			col_info.min = CATALOGINITMIN;
+			col_info.max = CATALOGINITMAX;
 			table_info.col.push_back(col_info);
 
 			TableMeta meta;
@@ -135,17 +137,17 @@ void JoinSet::parser(std::string query) {
 			
 			table_info.join_data = new JoinData;
 			table_info.join_data->meta.push_back(meta);
-			table_info.join_data->meta[0].col_index.push_back(join_info.inputS.second);
+			table_info.join_data->meta[0].col_index.push_back(join_info.inputS.second - 1);
 			
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
-			col_info.index = join_info.inputS.second;
-			col_info.min = MAXINT;
-			col_info.max = MININT;
+			col_info.index = join_info.inputS.second - 1;
+			col_info.min = CATALOGINITMIN;
+			col_info.max = CATALOGINITMAX;
 			this->table_info[index].col.push_back(col_info);
 		
-			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputS.second);	
+			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputS.second - 1);	
 		}
 	}
 	
@@ -195,7 +197,10 @@ void JoinSet::join_info_print() {
 }
 
 void JoinSet::table_info_print() {
+	std::cout << "========================" << std::endl;	
 	for (std::vector<TableInfo>::iterator iter = this->table_info.begin(); iter != this->table_info.end(); ++iter) {
+		std::cout << "table info" << std::endl;
+		std::cout << "tid: ";
 		std::cout << iter->tid;
 		std::cout << ": ";
 		for (std::vector<ColInfo>::iterator iter1 = iter->col.begin(); iter1 != iter->col.end(); ++iter1) {
@@ -207,6 +212,29 @@ void JoinSet::table_info_print() {
 			std::cout << ")";
 		}
 		std::cout << std::endl;
+		std::cout <<"--------------------"<<std::endl;
+		std::cout << "join data" << std::endl;
+		JoinData* join_data = iter->join_data;
+
+		for (std::vector<TableMeta>::iterator table_iter = join_data->meta.begin(); table_iter != join_data->meta.end(); ++table_iter) {
+			std::cout << table_iter->tid;
+			std::cout << ": ";
+			for (int k = 0; k < table_iter->col_index.size(); k++) {
+				std::cout << table_iter->col_index[k];
+				std::cout << ' ';
+			}
+			std::cout << std::endl;
+		}
+		std::cout <<"--------------------"<<std::endl;
+		for (std::vector<std::vector<udata_t>>::iterator op_iter = join_data->ops.begin(); op_iter != join_data->ops.end(); ++op_iter) {
+			for (std::vector<udata_t>::iterator col_iter = op_iter->begin(); col_iter != op_iter->end(); ++col_iter) {
+				std::cout << *col_iter;
+				std::cout << ' ';
+			}
+			std::cout << std::endl;
+		
+		}
+		std::cout << "========================" << std::endl;	
 	}
 }
 

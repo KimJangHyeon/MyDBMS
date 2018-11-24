@@ -174,9 +174,10 @@ open_table(char* path, unumber_t num_col) {
 	open_disk(tid);
 	size = disk_size(tid);
 	close_disk(tid);
-	if (size == 0) 
+	if (size == 0) {
 		init_table(tid, num_col);
-	
+	}
+	put_col(tid, num_col);
 	return tid;	
 }
 
