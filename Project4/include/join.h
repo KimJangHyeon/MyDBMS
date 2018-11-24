@@ -1,3 +1,4 @@
+/*
 typedef struct _ColInfo {
 	int index;
 	udata_t min;
@@ -34,6 +35,7 @@ typedef struct _JoinInfo {
 	std::pair<utable_t, int> inputS;
 
 } JoinInfo;
+*/
 
 class JoinTree {
 	private:

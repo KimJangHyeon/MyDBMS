@@ -1,8 +1,11 @@
 #include <iostream>
+#include <algorithm>
 #include <string>
 #include <vector>
 #include "types.h"
 #include "params.h"
+#include "join_struct.h"
+#include "views.h"
 #include "join.h"
 
 
@@ -85,25 +88,34 @@ void JoinSet::parser(std::string query) {
 
 		int index;
 		char isColExist;
+		utable_t tid;
 		TableInfo table_info;
 		ColInfo col_info;
 		index = get_tid_index(join_info.inputR.first, join_info.inputR.second, isColExist);	
 		if (index == -1) {
-			table_info.tid = join_info.inputR.first;
+			tid = join_info.inputR.first;
+			table_info.tid = tid; //join_info.inputR.first;
 			col_info.index = join_info.inputR.second;
+			col_info.min = MAXINT;
+			col_info.max = MININT;
 			table_info.col.push_back(col_info);
 			
+			TableMeta meta;
+			meta.tid = tid;
+
 			table_info.join_data = new JoinData;
-			table_info.join_data.meta.tid = tid;
-			table_info.join_data.meta.col_index.push_back(join_info.inputR.second);
+			table_info.join_data->meta.push_back(meta);
+			table_info.join_data->meta[0].col_index.push_back(join_info.inputR.second);
 
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
 			col_info.index = join_info.inputR.second;
+			col_info.min = MAXINT;
+			col_info.max = MININT;
 			this->table_info[index].col.push_back(col_info);
 
-			this->table_info[index].join_data.meta.col_index.push_back(join_info.inputR.second);
+			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputR.second);
 			
 		}
 		table_info.col.clear();
@@ -111,21 +123,29 @@ void JoinSet::parser(std::string query) {
 		index = get_tid_index(join_info.inputS.first, join_info.inputS.second, isColExist);	
 		std::cout << index << std::endl;
 		if (index == -1) {
-			table_info.tid = join_info.inputS.first;
+			tid = join_info.inputS.first;
+			table_info.tid = tid; //join_info.inputS.first;
 			col_info.index = join_info.inputS.second;
+			col_info.min = MAXINT;
+			col_info.max = MININT;
 			table_info.col.push_back(col_info);
+
+			TableMeta meta;
+			meta.tid = tid;
 			
 			table_info.join_data = new JoinData;
-			table_info.join_data.meta.tid = tid;
-			table_info.join_data.meta.col_index.push_back(join_info.inputS.second);
+			table_info.join_data->meta.push_back(meta);
+			table_info.join_data->meta[0].col_index.push_back(join_info.inputS.second);
 			
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
 			col_info.index = join_info.inputS.second;
+			col_info.min = MAXINT;
+			col_info.max = MININT;
 			this->table_info[index].col.push_back(col_info);
 		
-			this->table_info[index].join_data.meta.col_index.push_back(join_info.inputS.second);	
+			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputS.second);	
 		}
 	}
 	
@@ -142,7 +162,7 @@ void JoinSet::scanner() {
 	int* para_col;
 	udata_t* min_col;
 	udata_t* max_col;
-	unumber num_key;
+	unumber_t num_key = 0;
 	int i;
 	for (std::vector<TableInfo>::iterator iter = this->table_info.begin(); iter != this->table_info.end(); ++iter) {
 		cols.clear();
@@ -151,15 +171,17 @@ void JoinSet::scanner() {
 		para_col = new int[num_col];
 		i = 0;
 
-		sort(iter->join_data.meta.col_index.begin(), iter->join_data.meta.col_index.end());
+		sort(iter->join_data->meta[0].col_index.begin(), iter->join_data->meta[0].col_index.end());
 		sort(iter->col.begin(), iter->col.end(), col_index_cmp);
 
-		num_key = get_all_record(tid, iter->col, iter->join_data);
+		num_key = scan_table(tid, iter->col, iter->join_data);
 		/*for (std::vector<TableInfo>::iterator col_iter = iter->col.begin(); col_iter != iter->col.end(); ++ col_iter) {
 			para_col[i++] = col_iter->index;
 		}*/
 	}
-
+	
+	std::cout << "num key: ";
+	std::cout << num_key << std::endl;
 
 }
 

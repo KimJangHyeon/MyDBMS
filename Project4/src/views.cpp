@@ -7,6 +7,7 @@
 #include "params.h"
 #include "types.h"
 #include "pages.h"
+#include "join_struct.h"
 #include "disks.h"
 #include "lock.h"
 #include "queue.h"
@@ -841,8 +842,72 @@ get_left_leaf(utable_t tid) {
 }
 
 unumber_t 
-get_all_record(utable_t tid, std::vector<ColInfo> col_infos, std::vector<JoinData> join_datas) {
+scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 	LeafPage* lp = get_left_leaf(tid);
-	
-	
+	ukey32_t num_keys;
+	unumber_t global_num_keys = 0;
+	int init_i;
+	std::vector<udata_t> op;
+
+	if (lp == NULL) {
+		//is tree empty
+	}
+	if (col_infos[0].index == 0) {
+		//init_i = 1;
+		if (lp->header_top.num_keys == 0) {
+			printf("error left lp is 0\n");
+			exit(0);
+		}
+		col_infos[0].min = lp->record[0].key;
+	} else {
+		//init_i = 0;
+	}
+
+	do {
+		//setting min max
+		for (std::vector<ColInfo>::iterator col_iter = col_infos.begin(); col_iter != col_infos.end(); ++col_iter) {
+			if (col_iter->index == 0)
+				continue;
+			if (lp->catalog.info[col_iter->index - 1].min < col_iter->min) {
+				col_iter->min = lp->catalog.info[col_iter->index - 1].min;
+			}
+
+			if (lp->catalog.info[col_iter->index - 1].max > col_iter->max) {
+				col_iter->max = lp->catalog.info[col_iter->index - 1].max;
+			}
+		}
+
+		//get ops
+		num_keys = lp->header_top.num_keys;
+		global_num_keys += num_keys;
+		//get col data(make op)
+		for (int i = 0; i < num_keys; i++) {
+			for (std::vector<ColInfo>::iterator col_iter = col_infos.begin(); col_iter != col_infos.end(); ++col_iter) {
+				if (col_iter->index == 0) {
+					op.push_back(lp->record[i].key);
+				} else {
+					op.push_back(lp->record[i].value[col_iter->index - 1]);
+				}
+			}
+			join_datas->ops.push_back(op);
+		}
+
+		
+		if (lp->sibling == 0)
+			break;
+		else {
+			free(lp);
+			read_buffer(tid, lp->sibling, (Page*)lp);
+		}
+		//init_i = 0;
+	} while(1);
+
+	if (col_infos[0].index == 0) {
+		if (lp->header_top.num_keys == 0) {
+			printf("error left lp is 0\n");
+			exit(0);
+		}
+		col_infos[0].max = lp->record[num_keys - 1].key;	
+	}
+	return global_num_keys;
 }

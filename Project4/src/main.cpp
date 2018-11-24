@@ -5,6 +5,7 @@
 
 #include "types.h"
 #include "params.h"
+#include "join_struct.h"
 #include "queue.h"
 #include "pages.h"
 #include "lock.h"
@@ -278,7 +279,7 @@ main (int argc, char ** argv) {
     }
 	
 	JoinSet join_set;
-	join_set.parser("1.1=2.2&1.3=3.3");
+	join_set.parser("1.1=2.2");
 	join_set.join_info_print();
 	join_set.table_info_print();
 	//init_db(num_buf);
