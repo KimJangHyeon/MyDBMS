@@ -154,7 +154,7 @@ void JoinSet::parser(std::string query) {
 }
 
 bool col_index_cmp(const ColInfo &col1, const ColInfo &col2) {
-	return col1.index > col2.index;
+	return col1.index < col2.index;
 }
 
 void JoinSet::scanner() {
