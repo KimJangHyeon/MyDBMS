@@ -313,7 +313,7 @@ main (int argc, char ** argv) {
 	d_print_tree(tid2);
 	JoinSet join_set;
 
-	join_set.parser("1.1=2.1&&l.2=2.2");
+	join_set.parser("1.1=2.1&1.2=2.2");
 	join_set.scanner();
 	join_set.join_info_print();
 	join_set.table_info_print();

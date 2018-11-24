@@ -130,12 +130,12 @@ catalog_delete(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t va
 		}
 	}
 
-	fprintf(stderr, "num col: %d\n", num_col);
+	fprintf(stderr, "num col: %ld\n", num_col);
 	for (int i = 0; i < num_col - 1; i++) {
 		min = leaf->catalog.info[i].min;
 		max = leaf->catalog.info[i].max;
 
-		printf("num col: %d, min: %ld, max: %ld\n", num_col, min, max);
+		printf("num col: %ld, min: %ld, max: %ld\n", num_col, min, max);
 	}
 }
 
@@ -884,8 +884,8 @@ scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 		global_num_keys += num_keys;
 		//get col data(make op)
 		for (int i = 0; i < num_keys; i++) {
+			op.clear();
 			for (std::vector<ColInfo>::iterator col_iter = col_infos.begin(); col_iter != col_infos.end(); ++col_iter) {
-				op.clear();
 				if (col_iter->index == 0) {
 					op.push_back(lp->record[i].key);
 				} else {
