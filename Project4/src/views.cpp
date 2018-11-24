@@ -130,11 +130,12 @@ catalog_delete(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t va
 		}
 	}
 
+	fprintf(stderr, "num col: %d\n", num_col);
 	for (int i = 0; i < num_col - 1; i++) {
 		min = leaf->catalog.info[i].min;
 		max = leaf->catalog.info[i].max;
 
-		printf("min: %ld, max: %ld\n", min, max);
+		printf("num col: %d, min: %ld, max: %ld\n", num_col, min, max);
 	}
 }
 
@@ -162,6 +163,7 @@ catalog_insert(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t va
 
 		printf("min: %ld, max: %ld\n", min, max);
 	}
+	printf("--------------------\n");
 
 }
 
@@ -184,7 +186,7 @@ catalog_insert_split(LeafPage* leaf, unumber_t num_col, unumber_t num_key) {
 		leaf->catalog.info[i].min = min;
 
 		//get max
-		for (int j = 0;i < num_key; j++) {
+		for (int j = 0; j < num_key; j++) {
 			candidate_value = leaf->record[j].value[i];
 			if (max < candidate_value) {
 				max = candidate_value;	
@@ -217,7 +219,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 		free(inter_page);
 		return 0;
 	}
-	printf("newoff: %ld\n", hp->r_page_offset);
+	//printf("newoff: %ld\n", hp->r_page_offset);
 
 	//get page
 	read_buffer(tid, new_offset, (Page*)inter_page);
@@ -755,13 +757,13 @@ insert(utable_t tid, ukey64_t key, udata_t value[]) {
 	for (int i = num_col - 1; i < 15; i++) {
 		value[i] = VUNUSED;
 	}
-
+/*
 	printf("insert: value: ");
 	for (int i = 0; i < 15; i++) {
 		printf("%ld ", value[i]);
 	}
 	printf("\n");
-
+*/
 
 	//already have same key
 	if (temp != NULL) {
@@ -898,6 +900,7 @@ scan_table(utable_t tid, std::vector<ColInfo> col_infos, JoinData* join_datas) {
 			break;
 		else {
 			free(lp);
+			lp = (LeafPage*)malloc(sizeof(LeafPage));
 			read_buffer(tid, lp->sibling, (Page*)lp);
 		}
 		//init_i = 0;

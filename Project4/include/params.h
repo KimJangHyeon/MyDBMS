@@ -8,8 +8,8 @@
 #define TABLENAME		32
 #define NTABLE			10
 #define NTID			10
-#define LRECORD			30
-#define IRECORD			249
+#define LRECORD			4//30
+#define IRECORD			4//249
 #define FREEINIT		7
 #define NMAXVAL			15
 #define CATALOGINITMIN	1844674407370955164
