@@ -888,11 +888,13 @@ scan_table(utable_t tid, std::vector<ColInfo>* col_infos, JoinData* join_datas) 
 		for (int i = 0; i < num_keys; i++) {
 			op.clear();
 			for (std::vector<ColInfo>::iterator col_iter = (*col_infos).begin(); col_iter != (*col_infos).end(); ++col_iter) {
-				if (col_iter->index == 0) {
-					op.push_back(lp->record[i].key);
-				} else {
-					op.push_back(lp->record[i].value[col_iter->index - 1]);
-				}
+				//if (col_iter->index == 0) {
+				op.push_back(lp->record[i].key);
+				if (col_iter->index == 0)
+					continue;
+				//} else {
+				op.push_back(lp->record[i].value[col_iter->index - 1]);
+				//}
 			}
 			join_datas->ops.push_back(op);
 		}

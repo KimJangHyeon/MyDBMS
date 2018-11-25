@@ -185,7 +185,7 @@ void JoinSet::scanner() {
 	}
 
 	//get join ordering
-
+	
 }
 
 unumber_t JoinSet::get_num_key(utable_t tid) {
@@ -454,3 +454,47 @@ void JoinSet::table_info_print() {
 	}
 }
 
+//======================== join tree ====================
+
+JoinNode* 
+JoinTree::make_node(utable_t r_tid, int r_col, utable_t s_tid, int s_col, JoinNode* join_node, JoinData* join_data) {
+	JoinNode* ret_join_node = new JoinNode;
+
+	ret_join_node->meta.inputR.first = r_tid;
+	ret_join_node->meta.inputR.second = r_col;
+	ret_join_node->meta.inputS.first = s_tid;
+	ret_join_node->meta.inputS.second = s_col;
+
+	ret_join_node->inputR = join_node;
+	ret_join_node->inputS = join_data;
+
+	ret_join_node->isDone = 0;
+	return ret_join_node;
+}
+
+int 
+JoinTree::get_op_index(/*JoinData join_data, */utable_t tid, int index) {
+
+}
+
+void
+JoinTree::join(JoinNode* join_node) {
+	JoinInfo meta = join_node->meta;
+	
+	JoinData r_join_data = join_node->inputR.output;
+	JoinData s_join_data = *(join_node->inputS);
+
+	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second);
+	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second);
+
+	for (std::vector<std::vector<udata_t>>::iterator r_op_iter = join_data->ops.begin(); r_op_iter != join_data->ops.end(); ++r_op_iter) {
+		for (std::vector<std::vector<udata_t>>::iterator s_op_iter = join_data->ops.begin(); s_op_iter != join_data->ops.end(); ++s_op_iter) {
+			if (r_op_iter[r_index] == s_op_iter[s_index]) {
+				//sum two vector
+				//add to output (op)
+			}
+		}
+
+	}
+	join_node->isDone = 1;
+}

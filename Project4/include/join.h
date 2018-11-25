@@ -25,6 +25,7 @@ typedef struct _TableInfo {
 
 //for tree
 typedef struct _JoinNode {
+	JoinInfo meta;
 	struct _JoinNode* inputR;
 	JoinData* inputS;
 	JoinData output;
@@ -42,7 +43,11 @@ class JoinTree {
 		JoinNode* header;
 		std::vector<JoinNode*> join_point;
 
-	public: 
+	public:
+		JoinNode* make_node(utable_t, int, utable_t, int, JoinNode*, JoinData*);
+		int get_op_index(utable_t, int); //tid, index exception for key
+		void make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> table_info);
+		void join(JoinNode* join_node);
 
 };
 

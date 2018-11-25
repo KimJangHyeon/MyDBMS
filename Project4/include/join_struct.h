@@ -22,17 +22,19 @@ typedef struct _TableInfo {
 	JoinData* join_data;
 } TableInfo;
 
-//for tree
-typedef struct _JoinNode {
-	struct _JoinNode* inputR;
-	JoinData* inputS;
-	JoinData output;
-} JoinNode;
-
 typedef struct _JoinInfo {
 	std::pair<utable_t, int> inputR;
 	std::pair<utable_t, int> inputS;
 
 } JoinInfo;
 
+//for tree
+typedef struct _JoinNode {
+	char isDone;
+	vector<int> op_key_position;
+	JoinInfo meta;
+	struct _JoinNode* inputR;
+	JoinData* inputS;
+	JoinData output;
+} JoinNode;
 
