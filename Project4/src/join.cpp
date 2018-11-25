@@ -188,6 +188,67 @@ void JoinSet::scanner() {
 
 }
 
+void JoinSet::order_by_join() {
+	vector<utable_t> joined_table;
+	unumber_t joined_num_keys;
+
+	//get first join target
+
+	//loop for compare
+}
+
+unumber_t JoinSet::join_cost(unumber_t num_key1, utable_t tid1, int col1, unumber_t num_key2, utable_t tid2, int col2) {
+	unumber_t cost1, cost2;
+	unumber_t min1, min2, max1, max2;
+	unumber_t intersection_max = CATALOGINITMAX;
+	unumber_t intersection_min = CATALOGINITMIN;
+	double avg_cost, avg_cost1, avg_cost2;
+
+	for (int i = 0; i < this->table_info.size(); i++) {
+		if (this->table_info[i].tid == tid1) {
+			for (int j = 0; j < this->table_info[i].col.size(); j++) {
+				if (this->table_info[i].col[j].index == col1) {
+					min1 = this->table_info[i].col[j].min;
+					max1 = this->table_info[i].col[j].max;
+					if (intersection_min > min1)
+						intersection_min = min1;
+					if (intersection_max < max1)
+						intersection_max = max1;
+
+					//set avg_cost1
+					avg_cost1 = ((double)num_key1) / ((double)(max1 - min1));
+				}
+			}
+		}
+
+
+
+		else if (this->table_info[i].tid == tid2) {
+			for (int j = 0; j < this->table_info[i].col.size(); j++) {
+				if (this->table_info[i].col[j].index == col2) {
+					min1 = this->table_info[i].col[j].min;
+					max1 = this->table_info[i].col[j].max;
+					if (intersection_min > min2)
+						intersection_min = min2;
+					if (intersection_max < max2)
+						intersection_max = max2;
+					
+					//set avg_cost1
+					avg_cost2 = ((double)num_key2) / ((double)(max2 - min2));
+				}
+			}
+		}
+
+		if (avg_cost1 > avg_cost2)
+			avg_cost = avg_cost2;
+		else 
+			avg_cost = avg_cost1;
+
+		return (unumber_t)(((double)(intersection_max - intersection_min)) * avg_cost); 
+
+	}
+}
+
 void JoinSet::join_info_print() {
 	for (std::vector<JoinInfo>::iterator iter = this->join_info.begin(); iter != this->join_info.end(); ++iter) {
 		std::cout << iter->inputR.first;

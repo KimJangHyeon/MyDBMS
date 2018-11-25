@@ -42,7 +42,6 @@ class JoinTree {
 		JoinNode* header;
 		std::vector<JoinNode*> join_point;
 
-
 	public: 
 
 };
@@ -55,10 +54,12 @@ class JoinSet {
 		std::vector<JoinInfo> join_info; 
 		std::vector<TableInfo> table_info;
 		int get_tid_index(utable_t, int, char&);
+		unumber_t join_cost(unumber_t, utable_t, int, unumber_t, utable_t, int);
 	public:
 		std::vector<JoinData> join_data;
 		void parser(std::string query);		//return num_join//join_info setting + make TableInfo
 		void scanner();					//sort<table_info> by join order
+		void order_by_join();
 		void sort_tables();
 		void join_info_print();
 		void table_info_print();
