@@ -16,13 +16,13 @@ class JoinTree {
 class JoinSet {
 	private:
 		int num_join;
-		std::vector<JoinInfo> join_info; 
-		std::vector<TableInfo> table_info;
 		int get_tid_index(utable_t, int, char&);
 		unumber_t join_cost(unumber_t, utable_t, int, unumber_t, utable_t, int);
 		unumber_t get_num_key(utable_t);
 	public:
+		std::vector<JoinInfo> join_info; 
 		std::vector<JoinData> join_data;
+		std::vector<TableInfo> table_info;
 		void parser(std::string query);		//return num_join//join_info setting + make TableInfo
 		void scanner();					//sort<table_info> by join order
 		void order_by_join();

@@ -325,7 +325,7 @@ main (int argc, char ** argv) {
 	}
 	d_print_tree(tid2);
 	JoinSet join_set;
-
+	JoinTree join_tree;
 
 	join_set.parser("1.3=2.2&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
 	join_set.scanner();
@@ -337,7 +337,8 @@ main (int argc, char ** argv) {
 	join_set.order_by_join();
 	join_set.join_info_print();
 //	join_set.table_info_print();
-
+	std::cout << "************ JOIN TREE ****************" << std::endl;
+	join_tree.make_tree(join_set.join_info, join_set.table_info);
 	close_table(tid1);
 	close_table(tid2);
 
