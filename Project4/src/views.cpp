@@ -854,6 +854,7 @@ scan_table(utable_t tid, std::vector<ColInfo>* col_infos, JoinData* join_datas) 
 
 	if (lp == NULL) {
 		//is tree empty
+		return 0;
 	}
 	if ((*col_infos)[0].index == 0) {
 		//init_i = 1;

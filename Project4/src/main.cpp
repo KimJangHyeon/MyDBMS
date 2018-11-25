@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
-
+#include <iostream>
 #include "types.h"
 #include "params.h"
 #include "join_struct.h"
@@ -272,7 +272,7 @@ main (int argc, char ** argv) {
 	
     char* table_path;
 	int num_buf;
-	utable_t tid1, tid2;
+	utable_t tid1, tid2, tid3, tid4, tid5, tid6;
 	udata_t* value;
     if(argc > 1 && argc < 3) {
 		num_buf = atoi(argv[1]);
@@ -285,7 +285,8 @@ main (int argc, char ** argv) {
 
 	tid1 = open_table("a", 3);
 	tid2 = open_table("b", 3);
-
+	tid3 = open_table("c", 3);
+	tid4 = open_table("d", 3);
 	value = (udata_t*)malloc(sizeof(udata_t) * 15);
 	int j = 0;
 	for (int i = 0; i < 15; i++) {
@@ -310,13 +311,32 @@ main (int argc, char ** argv) {
 		value[1] = i*3+1;
 		insert(tid2, i*3+2, value);
 	}
+	
+	for (int i = 1; i < 5; i++) {
+		value[0] = i*3 + 1;
+		value[1] = i*3 + 2;
+		insert(tid3, i*3, value);
+	}
+
+	for (int i = 10; i < 16; i++) {
+		value[0] = i*3 + 1;
+		value[1] = i*3 + 2;
+		insert(tid4, i*3, value);
+	}
 	d_print_tree(tid2);
 	JoinSet join_set;
 
-	join_set.parser("1.1=2.1&1.2=2.2");
+
+	join_set.parser("1.3=2.2&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
 	join_set.scanner();
-	join_set.join_info_print();
 	join_set.table_info_print();
+	join_set.join_info_print();
+
+	std::cout << "****************************" << std::endl;
+
+	join_set.order_by_join();
+	join_set.join_info_print();
+//	join_set.table_info_print();
 
 	close_table(tid1);
 	close_table(tid2);

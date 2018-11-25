@@ -55,6 +55,7 @@ class JoinSet {
 		std::vector<TableInfo> table_info;
 		int get_tid_index(utable_t, int, char&);
 		unumber_t join_cost(unumber_t, utable_t, int, unumber_t, utable_t, int);
+		unumber_t get_num_key(utable_t);
 	public:
 		std::vector<JoinData> join_data;
 		void parser(std::string query);		//return num_join//join_info setting + make TableInfo
