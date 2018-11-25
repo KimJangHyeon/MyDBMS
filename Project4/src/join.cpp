@@ -3,6 +3,7 @@
 #include <iterator>
 #include <string>
 #include <vector>
+#include <memory.h>
 #include "types.h"
 #include "params.h"
 #include "join_struct.h"
@@ -472,29 +473,163 @@ JoinTree::make_node(utable_t r_tid, int r_col, utable_t s_tid, int s_col, JoinNo
 	return ret_join_node;
 }
 
-int 
-JoinTree::get_op_index(/*JoinData join_data, */utable_t tid, int index) {
+//1 , 0 1 2 3
+//2 , 3 4 5 6
+//4 , 0 1 2 3
+//4 1
 
+// [9]
+// 0 1 2 3 . 0 3 4 5 6 . 0 1 2 3
+
+
+//return -1 error
+int 
+JoinTree::get_op_index(JoinData join_data, utable_t tid, int index) {
+	int ret = 0;
+	std::vector<TableMeta> meta = join_data.meta;
+	for (std::vector<TableMeta>::iterator meta_iter = meta.begin(); meta_iter != meta.end(); ++meta_iter) {
+		if(meta_iter->tid != tid) {
+			if (meta_iter->col_index[0] == 0) 
+				ret += meta_iter->col_index.size();
+			else 
+				ret += (meta_iter->col_index.size() + 1);
+
+			continue;
+		}
+		for (std::vector<int>::iterator col_iter = meta_iter->col_index.begin(); col_iter != meta_iter->col_index.end(); ++col_iter) {
+			if((*col_iter) != index) {
+				ret++;
+				continue;
+			}
+			return ret;
+		}
+	}
+	return -1;
+}
+
+JoinData* 
+JoinTree::get_join_data(utable_t tid, std::vector<TableInfo> table_info) {
+	for (std::vector<TableInfo>::iterator table_info_iter = table_info.begin(); table_info_iter != table_info.end(); ++table_info_iter) {
+		if(table_info_iter->tid == tid) {
+			return table_info_iter->join_data;
+		}
+	}
+	return NULL;
+}
+
+int 
+JoinTree::node_meta_size(JoinNode* join_node) {
+	int ret = 0;
+	for (std::vector<TableMeta>::iterator meta_iter = join_node->output.meta.begin(); meta_iter != join_node->output.meta.end(); ++meta_iter) {
+		if(meta_iter->col_index[0] == 0)
+			ret += meta_iter->col_index.size();
+		else 
+			ret += (meta_iter->col_index.size() + 1);
+	}
+	return ret;
 }
 
 void
 JoinTree::join(JoinNode* join_node) {
 	JoinInfo meta = join_node->meta;
 	
-	JoinData r_join_data = join_node->inputR.output;
+	JoinData r_join_data = join_node->inputR->output;
 	JoinData s_join_data = *(join_node->inputS);
 
 	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second);
 	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second);
 
-	for (std::vector<std::vector<udata_t>>::iterator r_op_iter = join_data->ops.begin(); r_op_iter != join_data->ops.end(); ++r_op_iter) {
-		for (std::vector<std::vector<udata_t>>::iterator s_op_iter = join_data->ops.begin(); s_op_iter != join_data->ops.end(); ++s_op_iter) {
+	std::vector<TableMeta> r_meta = r_join_data.meta;
+	std::vector<TableMeta> s_meta = s_join_data.meta;
+	std::vector<TableMeta> out_meta = r_meta;
+	std::vector<udata_t> out_op;
+
+	//free child node output(because memory)
+	if(join_node->inputR != NULL && join_node->inputR->isDone == 1) {
+		if(join_node->inputR->inputR != NULL) {
+			delete join_node->inputR->inputR;
+			join_node->inputR->inputR = NULL;
+		}
+	}
+
+	if (join_node->inputR != NULL)
+		join_node->op_key_position = join_node->inputR->op_key_position;
+
+
+	char isInclude = 0;
+	for (std::vector<TableMeta>::iterator r_meta_iter = r_meta.begin(); r_meta_iter != r_meta.end(); ++r_meta_iter) {
+		if(r_meta_iter->tid != s_meta[0].tid) 
+			continue;
+		isInclude = 1;
+	}
+
+	if (!isInclude) { 
+		join_node->op_key_position.push_back(node_meta_size(join_node->inputR));
+		out_meta.push_back(s_meta[0]);
+	}
+
+	join_node->output.meta = out_meta;
+
+
+	if (r_index == -1 || s_index == -1) {
+		std::cout << "error case in get_op_index" <<std::endl;
+		exit(0);
+	}
+
+	for (std::vector<std::vector<udata_t>>::iterator r_op_iter = join_node->inputR->output.ops.begin(); r_op_iter != join_node->inputR->output.ops.end(); ++r_op_iter) {
+		for (std::vector<std::vector<udata_t>>::iterator s_op_iter = join_node->inputS->ops.begin(); s_op_iter != join_node->inputS->ops.end(); ++s_op_iter) {
 			if (r_op_iter[r_index] == s_op_iter[s_index]) {
 				//sum two vector
+				if (isInclude) {
+					join_node->output.ops.push_back(*r_op_iter);
+				}
+				else {
+					out_op = (*r_op_iter);
+					for (std::vector<udata_t>::iterator add_op_iter = s_op_iter->begin(); add_op_iter != s_op_iter->end();++add_op_iter) {
+						out_op.push_back(*add_op_iter);
+					}
+				}
 				//add to output (op)
+				join_node->output.ops.push_back(out_op);
 			}
 		}
-
 	}
 	join_node->isDone = 1;
+}
+
+void
+JoinTree::make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> table_info) {
+	JoinNode* r_node = NULL;
+	JoinNode* out_node;
+	JoinData* r_data;
+	JoinData* s_data;
+	JoinData* out_data;
+	utable_t r_tid, s_tid;
+	int r_col, s_col;
+
+	for (std::vector<JoinInfo>::iterator join_info_iter = join_info.begin(); join_info_iter != join_info.end(); ++join_info_iter) {
+		r_tid = join_info_iter->inputR.first;
+		r_col = join_info_iter->inputR.second;
+		s_tid = join_info_iter->inputS.first;
+		s_col = join_info_iter->inputS.second;
+
+		if(r_node == NULL) {
+			r_node = make_node(r_tid, r_col, s_tid, s_col, NULL, NULL);
+			r_data = get_join_data(r_tid, table_info); 
+			if (r_data == NULL) {
+				std::cout << "get_join_data error(r)" << std::endl;
+				exit(0);
+			}
+			memcpy(&(r_node->output), r_data, sizeof(JoinData));
+		}
+		s_data = get_join_data(s_tid, table_info);
+		if (s_data == NULL) {
+			std::cout << "get_join_data error(s)" << std::endl;
+			exit(0);
+		}
+		out_node = make_node(r_tid, r_col, s_tid, s_col, r_node, s_data);
+		this->join_point.push_back(out_node);
+		r_node = out_node;
+	}
+	this->header = out_node;
 }

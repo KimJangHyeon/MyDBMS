@@ -1,54 +1,14 @@
-/*
-typedef struct _ColInfo {
-	int index;
-	udata_t min;
-	udata_t max;
-} ColInfo;
-
-typedef struct _TableMeta {
-	utable_t tid;
-	std::vector<int> col_index;
-} TableMeta;
-
-typedef struct _JoinData {
-	char isDone;
-	std::vector<std::vector<TableMeta>> meta;
-	std::vector<std::vector<udata_t>> ops;
-} JoinData;
-
-typedef struct _TableInfo {
-	utable_t tid;
-	unumber_t num_key;
-	std::vector<ColInfo> col;
-	JoinData* join_data;
-} TableInfo;
-
-//for tree
-typedef struct _JoinNode {
-	JoinInfo meta;
-	struct _JoinNode* inputR;
-	JoinData* inputS;
-	JoinData output;
-} JoinNode;
-
-typedef struct _JoinInfo {
-	std::pair<utable_t, int> inputR;
-	std::pair<utable_t, int> inputS;
-
-} JoinInfo;
-*/
-
 class JoinTree {
 	private:
 		JoinNode* header;
 		std::vector<JoinNode*> join_point;
-
+		int node_meta_size(JoinNode*);
 	public:
 		JoinNode* make_node(utable_t, int, utable_t, int, JoinNode*, JoinData*);
-		int get_op_index(utable_t, int); //tid, index exception for key
+		int get_op_index(JoinData, utable_t, int); //tid, index exception for key
 		void make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> table_info);
 		void join(JoinNode* join_node);
-
+		JoinData* get_join_data(utable_t, std::vector<TableInfo> table_info);
 };
 
 //parser -> TableInfo, num_join
