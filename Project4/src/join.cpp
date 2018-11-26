@@ -575,13 +575,10 @@ JoinTree::join(JoinNode* join_node) {
 	JoinInfo meta = join_node->meta;
 	JoinData r_join_data;
 	JoinData s_join_data;
-	if (!join_node->isChanged) {
-		r_join_data = join_node->inputR->output;
-		s_join_data = *(join_node->inputS);
-	} else {
-		r_join_data = *(join_node->inputS);
-		s_join_data = join_node->inputR->output;
-	}
+		
+	r_join_data = join_node->inputR->output;
+	std::cout << r_join_data.meta.size() << "is size of r meta" << std::endl;
+	s_join_data = *(join_node->inputS);
 
 	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second - 1);
 	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second - 1);
@@ -595,13 +592,14 @@ JoinTree::join(JoinNode* join_node) {
 	std::vector<udata_t> out_op;
 
 	//free child node output(because memory)
+	/*
 	if(join_node->inputR != NULL && join_node->inputR->isDone == 1) {
 		if(join_node->inputR->inputR != NULL) {
 			delete join_node->inputR->inputR;
 			join_node->inputR->inputR = NULL;
 		}
 	}
-
+*/
 	if (join_node->inputR != NULL)
 		join_node->op_key_position = join_node->inputR->op_key_position;
 
@@ -615,10 +613,8 @@ JoinTree::join(JoinNode* join_node) {
 
 	if (!isInclude) { 
 		join_node->op_key_position.push_back(node_meta_size(join_node->inputR));
-		out_meta.push_back(s_meta[0]);
 	}
 
-	join_node->output.meta = out_meta;
 
 
 	if (r_index == -1 || s_index == -1) {
@@ -656,12 +652,35 @@ JoinTree::make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> tabl
 	JoinData* out_data;
 	utable_t r_tid, s_tid;
 	int r_col, s_col;
-
+	char isRInclude;
 	for (std::vector<JoinInfo>::iterator join_info_iter = join_info.begin(); join_info_iter != join_info.end(); ++join_info_iter) {
+		isRInclude = 0;
+		
 		r_tid = join_info_iter->inputR.first;
 		r_col = join_info_iter->inputR.second;
 		s_tid = join_info_iter->inputS.first;
 		s_col = join_info_iter->inputS.second;
+
+		if (r_node != NULL) {
+			for (int i = 0; i < r_node->output.meta.size(); i++) {
+				if(r_node->output.meta[i].tid == join_info_iter->inputR.first)
+					isRInclude = 1;
+			}
+		} else {
+			isRInclude = 1;
+		}
+
+		if (isRInclude) {
+			r_tid = join_info_iter->inputR.first;
+			r_col = join_info_iter->inputR.second;
+			s_tid = join_info_iter->inputS.first;
+			s_col = join_info_iter->inputS.second;
+		} else {
+			r_tid = join_info_iter->inputS.first;
+			r_col = join_info_iter->inputS.second;
+			s_tid = join_info_iter->inputR.first;
+			s_col = join_info_iter->inputR.second;
+		}
 
 		if(r_node == NULL) {
 			r_node = make_node(r_tid, r_col, s_tid, s_col, NULL, NULL);
@@ -679,9 +698,31 @@ JoinTree::make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> tabl
 		}
 		out_node = make_node(r_tid, r_col, s_tid, s_col, r_node, s_data);
 		this->join_point.push_back(out_node);
+		out_node->inputR = r_node;
+
+		char isInclude = 0;
+		std::vector<TableMeta> r_meta = r_data->meta;
+		std::vector<TableMeta> s_meta = s_data->meta;
+		std::vector<TableMeta> out_meta = r_meta;
+		
+		for (std::vector<TableMeta>::iterator r_meta_iter = r_meta.begin(); r_meta_iter != r_meta.end(); ++r_meta_iter) {
+			if(r_meta_iter->tid != s_meta[0].tid) 
+				continue;
+			isInclude = 1;
+		}
+	
+		if (!isInclude) { 
+			out_meta.push_back(s_meta[0]);
+		}
+	
+		out_node->output.meta = out_meta;
 		r_node = out_node;
+		r_data = &(r_node->output);
 	}
 	this->header = out_node;
+
+
+	
 }
 
 void
@@ -723,9 +764,15 @@ JoinTree::join_tree_print() {
 		}
 
 		std::cout << "-------------------------" << std::endl;
-		std::cout << "output: " << std::endl;
-
+		std::cout << "output: <";// << std::endl;
+		
 		out_data = &((*point_iter)->output);
+		
+		for (int i = 0; i < out_data->meta.size(); i++) {
+			std::cout << out_data->meta[i].tid << ' ';
+		}
+		std::cout << ">" <<std::endl;
+
 		for (std::vector<std::vector<udata_t>>::iterator op_iter = out_data->ops.begin(); op_iter != out_data->ops.end(); ++op_iter) {
 			for (std::vector<udata_t>::iterator col_iter = op_iter->begin(); col_iter != op_iter->end(); ++col_iter) {
 				std::cout << (*col_iter) << ' ';
