@@ -467,25 +467,32 @@ JoinTree::make_node(utable_t r_tid, int r_col, utable_t s_tid, int s_col, JoinNo
 	char isTidExist = 0;
 	std::vector<TableMeta> check_meta;
 	JoinNode* ret_join_node = new JoinNode;
-	
-	check_meta = join_node->inputR->output.meta;
-
-	for (std::vector<TableMeta>::iterator meta_iter = check_meta.begin(); meta_iter != check_meta.end(); ++meta_iter) {
-		if (r_tid == meta_iter->tid)
-			isTidExist = 1;
+	if (join_node != NULL) {
+		check_meta = join_node->output.meta;
+		std::cout << "rtid: " << r_tid << std::endl;
+		for (std::vector<TableMeta>::iterator meta_iter = check_meta.begin(); meta_iter != check_meta.end(); ++meta_iter) {
+			if (r_tid == meta_iter->tid)
+				isTidExist = 1; 
+			else {
+				std::cout << "r tid: " << r_tid << ", meta tid: " << meta_iter->tid<< std::endl;
+			}
+		}
+		
+		if (isTidExist) {
+			std::cout << "is Tid Exist" << std::endl;
+			ret_join_node->meta.inputR.first = r_tid;
+			ret_join_node->meta.inputR.second = r_col;
+			ret_join_node->meta.inputS.first = s_tid;
+			ret_join_node->meta.inputS.second = s_col;
+		} else {
+			std::cout << "is Tid Not Exist" << std::endl;
+			ret_join_node->meta.inputR.first = s_tid;
+			ret_join_node->meta.inputR.second = s_col;
+			ret_join_node->meta.inputS.first = r_tid;
+			ret_join_node->meta.inputS.second = r_col;
+		}
 	}
 	
-	if (isTidExist) {
-		ret_join_node->meta.inputR.first = r_tid;
-		ret_join_node->meta.inputR.second = r_col;
-		ret_join_node->meta.inputS.first = s_tid;
-		ret_join_node->meta.inputS.second = s_col;
-	} else {
-		ret_join_node->meta.inputR.first = s_tid;
-		ret_join_node->meta.inputR.second = s_col;
-		ret_join_node->meta.inputS.first = r_tid;
-		ret_join_node->meta.inputS.second = r_col;
-	}
 	ret_join_node->inputR = join_node;
 	ret_join_node->inputS = join_data;
 	ret_join_node->isDone = 0;
@@ -579,8 +586,8 @@ JoinTree::join(JoinNode* join_node) {
 	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second - 1);
 	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second - 1);
 
-	std::cout << r_join_data.meta[0].tid << ' ' << meta.inputR.first << ' ' << meta.inputR.second - 1 << std::endl;
-	std::cout << s_join_data.meta[0].tid << ' ' << meta.inputS.first << ' ' << meta.inputS.second - 1 << '\n' <<  std::endl;
+	std::cout << meta.inputR.first << ' ' << meta.inputR.second - 1 << std::endl;
+	std::cout << meta.inputS.first << ' ' << meta.inputS.second - 1 << '\n' <<  std::endl;
 
 	std::vector<TableMeta> r_meta = r_join_data.meta;
 	std::vector<TableMeta> s_meta = s_join_data.meta;
@@ -717,6 +724,7 @@ JoinTree::join_tree_print() {
 
 		std::cout << "-------------------------" << std::endl;
 		std::cout << "output: " << std::endl;
+
 		out_data = &((*point_iter)->output);
 		for (std::vector<std::vector<udata_t>>::iterator op_iter = out_data->ops.begin(); op_iter != out_data->ops.end(); ++op_iter) {
 			for (std::vector<udata_t>::iterator col_iter = op_iter->begin(); col_iter != op_iter->end(); ++col_iter) {
