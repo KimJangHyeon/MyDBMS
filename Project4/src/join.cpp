@@ -733,7 +733,5 @@ JoinTree::join_tree_print() {
 			std::cout << std::endl;
 		}
 		std::cout << "=========================" << std::endl;
-
-
 	}
 }
