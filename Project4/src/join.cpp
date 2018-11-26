@@ -633,3 +633,8 @@ JoinTree::make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> tabl
 	}
 	this->header = out_node;
 }
+
+void
+JoinTree::join_tree_print() {
+
+}

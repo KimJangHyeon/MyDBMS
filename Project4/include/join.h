@@ -9,6 +9,8 @@ class JoinTree {
 		void make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> table_info);
 		void join(JoinNode* join_node);
 		JoinData* get_join_data(utable_t, std::vector<TableInfo> table_info);
+		void join_tree_print();
+
 };
 
 //parser -> TableInfo, num_join
