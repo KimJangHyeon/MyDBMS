@@ -23,8 +23,8 @@ int JoinSet::get_tid_index(utable_t tid, int index, char &isColExist) {
 					isColExist = true;
 					break;
 				}
+				isColExist = false;
 			}
-		isColExist = false;
 		return ret_index;
 	}
 	isColExist = false;
@@ -96,6 +96,13 @@ void JoinSet::parser(std::string query) {
 		TableInfo table_info;
 		ColInfo col_info;
 		index = get_tid_index(join_info.inputR.first, join_info.inputR.second - 1, isColExist);	
+		if(isColExist) {
+			std::cout << "\n\n\n\n\nIS COL EXIST \n\n\n\n\n" << join_info.inputR.first << ' ' << join_info.inputR.second  << std::endl;
+		}
+		else 
+			std::cout << "\n\n\n\n\nIS COL NOT EXIST \n\n\n\n\n" << join_info.inputR.first << ' ' << join_info.inputR.second  << std::endl;
+
+
 		if (index == -1) {
 			tid = join_info.inputR.first;
 			table_info.tid = tid; //join_info.inputR.first;
@@ -114,6 +121,8 @@ void JoinSet::parser(std::string query) {
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
+			tid = join_info.inputR.first;
+			table_info.tid = tid;
 			col_info.index = join_info.inputR.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
@@ -121,10 +130,17 @@ void JoinSet::parser(std::string query) {
 
 			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputR.second - 1);
 			
+		} else if (index != -1 && !isColExist) {
+			std::cout << "r col exist" <<std::endl;
 		}
 		table_info.col.clear();
 		table_info = {};
 		index = get_tid_index(join_info.inputS.first, join_info.inputS.second - 1, isColExist);	
+		if(isColExist)
+			std::cout << "\n\n\n\n\nIS COL EXIST \n\n\n\n\n" << join_info.inputS.first << ' ' << join_info.inputS.second  << std::endl;
+		else 
+			std::cout << "\n\n\n\n\nIS COL NOT EXIST \n\n\n\n\n" << join_info.inputS.first << ' ' << join_info.inputS.second  << std::endl;
+
 		//std::cout << index << std::endl;
 		if (index == -1) {
 			tid = join_info.inputS.first;
@@ -150,6 +166,8 @@ void JoinSet::parser(std::string query) {
 			this->table_info[index].col.push_back(col_info);
 		
 			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputS.second - 1);	
+		} else if (index != -1 && isColExist) {
+			std::cout << "r col exist" <<std::endl;
 		}
 	}
 	
@@ -636,5 +654,47 @@ JoinTree::make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> tabl
 
 void
 JoinTree::join_tree_print() {
+	utable_t r_tid, s_tid;
+	int r_col, s_col;
+	JoinData* out_data;
+	JoinData* s_data;
+	for (std::vector<JoinNode*>::iterator point_iter = join_point.begin(); point_iter != join_point.end(); ++point_iter) {
+		r_tid = (*point_iter)->meta.inputR.first;
+		s_tid = (*point_iter)->meta.inputS.first;
+		r_col = (*point_iter)->meta.inputR.second;
+		s_col = (*point_iter)->meta.inputS.second;
 
+		std::cout << "r tid: " << r_tid << std::endl;
+		std::cout << "r col: " << r_col << std::endl;
+		std::cout << "s tid: " << s_tid << std::endl;
+		std::cout << "s col: " << s_col << std::endl;
+		std::cout << "-------------------------" << std::endl;
+		std::cout << "key position: ";
+		for (std::vector<int>::iterator key_iter = (*point_iter)->op_key_position.begin(); key_iter != (*point_iter)->op_key_position.end(); ++key_iter) {
+			std::cout << (*key_iter) << ' ';
+		}
+		std::cout <<std::endl;
+		std::cout << "-------------------------" << std::endl;
+		std::cout << "inputS: " << std::endl;
+		s_data = (*point_iter)->inputS;
+		for (std::vector<std::vector<udata_t>>::iterator op_iter = s_data->ops.begin(); op_iter != s_data->ops.end(); ++op_iter) {
+			for (std::vector<udata_t>::iterator col_iter = op_iter->begin(); col_iter != op_iter->end(); ++col_iter) {
+				std::cout << (*col_iter) << ' ';
+			}
+			std::cout << std::endl;
+		}
+
+		std::cout << "-------------------------" << std::endl;
+		std::cout << "output: " << std::endl;
+		out_data = &((*point_iter)->output);
+		for (std::vector<std::vector<udata_t>>::iterator op_iter = out_data->ops.begin(); op_iter != out_data->ops.end(); ++op_iter) {
+			for (std::vector<udata_t>::iterator col_iter = op_iter->begin(); col_iter != op_iter->end(); ++col_iter) {
+				std::cout << (*col_iter) << ' ';
+			}
+			std::cout << std::endl;
+		}
+		std::cout << "-------------------------" << std::endl;
+
+
+	}
 }

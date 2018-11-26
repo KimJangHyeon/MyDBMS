@@ -339,6 +339,7 @@ main (int argc, char ** argv) {
 //	join_set.table_info_print();
 	std::cout << "************ JOIN TREE ****************" << std::endl;
 	join_tree.make_tree(join_set.join_info, join_set.table_info);
+	join_tree.join_tree_print();
 	close_table(tid1);
 	close_table(tid2);
 
