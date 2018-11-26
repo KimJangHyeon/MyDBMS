@@ -96,11 +96,6 @@ void JoinSet::parser(std::string query) {
 		TableInfo table_info;
 		ColInfo col_info;
 		index = get_tid_index(join_info.inputR.first, join_info.inputR.second - 1, isColExist);	
-		if(isColExist) {
-			std::cout << "\n\n\n\n\nIS COL EXIST \n\n\n\n\n" << join_info.inputR.first << ' ' << join_info.inputR.second  << std::endl;
-		}
-		else 
-			std::cout << "\n\n\n\n\nIS COL NOT EXIST \n\n\n\n\n" << join_info.inputR.first << ' ' << join_info.inputR.second  << std::endl;
 
 
 		if (index == -1) {
@@ -130,16 +125,10 @@ void JoinSet::parser(std::string query) {
 
 			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputR.second - 1);
 			
-		} else if (index != -1 && !isColExist) {
-			std::cout << "r col exist" <<std::endl;
-		}
+		} 
 		table_info.col.clear();
 		table_info = {};
 		index = get_tid_index(join_info.inputS.first, join_info.inputS.second - 1, isColExist);	
-		if(isColExist)
-			std::cout << "\n\n\n\n\nIS COL EXIST \n\n\n\n\n" << join_info.inputS.first << ' ' << join_info.inputS.second  << std::endl;
-		else 
-			std::cout << "\n\n\n\n\nIS COL NOT EXIST \n\n\n\n\n" << join_info.inputS.first << ' ' << join_info.inputS.second  << std::endl;
 
 		//std::cout << index << std::endl;
 		if (index == -1) {
@@ -166,9 +155,7 @@ void JoinSet::parser(std::string query) {
 			this->table_info[index].col.push_back(col_info);
 		
 			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputS.second - 1);	
-		} else if (index != -1 && isColExist) {
-			std::cout << "r col exist" <<std::endl;
-		}
+		} 
 	}
 	
 }
@@ -675,8 +662,14 @@ JoinTree::join_tree_print() {
 		}
 		std::cout <<std::endl;
 		std::cout << "-------------------------" << std::endl;
-		std::cout << "inputS: " << std::endl;
+		std::cout << "inputS: <";
 		s_data = (*point_iter)->inputS;
+		std::cout << s_data->meta[0].tid << ": ";
+		for (std::vector<int>::iterator col_iter = s_data->meta[0].col_index.begin(); col_iter != s_data->meta[0].col_index.end(); ++col_iter) 
+			std::cout << (*col_iter) << ' ';
+		 std::cout << '>' << std::endl;
+
+		
 		for (std::vector<std::vector<udata_t>>::iterator op_iter = s_data->ops.begin(); op_iter != s_data->ops.end(); ++op_iter) {
 			for (std::vector<udata_t>::iterator col_iter = op_iter->begin(); col_iter != op_iter->end(); ++col_iter) {
 				std::cout << (*col_iter) << ' ';
