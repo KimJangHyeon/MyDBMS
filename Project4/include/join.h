@@ -10,6 +10,8 @@ class JoinTree {
 		void join(JoinNode* join_node);
 		JoinData* get_join_data(utable_t, std::vector<TableInfo> table_info);
 		void join_tree_print();
+		int join_point_size();
+		JoinNode* join_address(int index);
 
 };
 

@@ -464,18 +464,42 @@ void JoinSet::table_info_print() {
 
 JoinNode* 
 JoinTree::make_node(utable_t r_tid, int r_col, utable_t s_tid, int s_col, JoinNode* join_node, JoinData* join_data) {
+	char isTidExist = 0;
+	std::vector<TableMeta> check_meta;
 	JoinNode* ret_join_node = new JoinNode;
+	
+	check_meta = join_node->inputR->output.meta;
 
-	ret_join_node->meta.inputR.first = r_tid;
-	ret_join_node->meta.inputR.second = r_col;
-	ret_join_node->meta.inputS.first = s_tid;
-	ret_join_node->meta.inputS.second = s_col;
-
+	for (std::vector<TableMeta>::iterator meta_iter = check_meta.begin(); meta_iter != check_meta.end(); ++meta_iter) {
+		if (r_tid == meta_iter->tid)
+			isTidExist = 1;
+	}
+	
+	if (isTidExist) {
+		ret_join_node->meta.inputR.first = r_tid;
+		ret_join_node->meta.inputR.second = r_col;
+		ret_join_node->meta.inputS.first = s_tid;
+		ret_join_node->meta.inputS.second = s_col;
+	} else {
+		ret_join_node->meta.inputR.first = s_tid;
+		ret_join_node->meta.inputR.second = s_col;
+		ret_join_node->meta.inputS.first = r_tid;
+		ret_join_node->meta.inputS.second = r_col;
+	}
 	ret_join_node->inputR = join_node;
 	ret_join_node->inputS = join_data;
-
 	ret_join_node->isDone = 0;
 	return ret_join_node;
+}
+
+JoinNode* 
+JoinTree::join_address(int index) {
+	return this->join_point[index];
+}
+
+int
+JoinTree::join_point_size() {
+	return this->join_point.size();
 }
 
 //1 , 0 1 2 3
@@ -492,23 +516,28 @@ int
 JoinTree::get_op_index(JoinData join_data, utable_t tid, int index) {
 	int ret = 0;
 	std::vector<TableMeta> meta = join_data.meta;
+	std::cout << "route" << std::endl;
 	for (std::vector<TableMeta>::iterator meta_iter = meta.begin(); meta_iter != meta.end(); ++meta_iter) {
 		if(meta_iter->tid != tid) {
 			if (meta_iter->col_index[0] == 0) 
 				ret += meta_iter->col_index.size();
 			else 
 				ret += (meta_iter->col_index.size() + 1);
-
+			std::cout << "tid(" << meta_iter->tid << ")\n";
 			continue;
 		}
 		for (std::vector<int>::iterator col_iter = meta_iter->col_index.begin(); col_iter != meta_iter->col_index.end(); ++col_iter) {
 			if((*col_iter) != index) {
+				std::cout << (*col_iter) << ' ';
 				ret++;
 				continue;
 			}
+			std::cout << (*col_iter) << std::endl;
+			std::cout << "(success)" << std::endl;
 			return ret;
 		}
 	}
+	std::cout << std::endl;
 	return -1;
 }
 
@@ -537,12 +566,21 @@ JoinTree::node_meta_size(JoinNode* join_node) {
 void
 JoinTree::join(JoinNode* join_node) {
 	JoinInfo meta = join_node->meta;
-	
-	JoinData r_join_data = join_node->inputR->output;
-	JoinData s_join_data = *(join_node->inputS);
+	JoinData r_join_data;
+	JoinData s_join_data;
+	if (!join_node->isChanged) {
+		r_join_data = join_node->inputR->output;
+		s_join_data = *(join_node->inputS);
+	} else {
+		r_join_data = *(join_node->inputS);
+		s_join_data = join_node->inputR->output;
+	}
 
-	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second);
-	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second);
+	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second - 1);
+	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second - 1);
+
+	std::cout << r_join_data.meta[0].tid << ' ' << meta.inputR.first << ' ' << meta.inputR.second - 1 << std::endl;
+	std::cout << s_join_data.meta[0].tid << ' ' << meta.inputS.first << ' ' << meta.inputS.second - 1 << '\n' <<  std::endl;
 
 	std::vector<TableMeta> r_meta = r_join_data.meta;
 	std::vector<TableMeta> s_meta = s_join_data.meta;
@@ -577,7 +615,7 @@ JoinTree::join(JoinNode* join_node) {
 
 
 	if (r_index == -1 || s_index == -1) {
-		std::cout << "error case in get_op_index" <<std::endl;
+		std::cout << "error case in get_op_index" << '(' << r_index << ", " << s_index << ')' << std::endl;
 		exit(0);
 	}
 
@@ -686,7 +724,7 @@ JoinTree::join_tree_print() {
 			}
 			std::cout << std::endl;
 		}
-		std::cout << "-------------------------" << std::endl;
+		std::cout << "=========================" << std::endl;
 
 
 	}

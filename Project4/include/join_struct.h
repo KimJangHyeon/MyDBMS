@@ -31,6 +31,7 @@ typedef struct _JoinInfo {
 //for tree
 typedef struct _JoinNode {
 	char isDone;
+	char isChanged;
 	std::vector<int> op_key_position;
 	JoinInfo meta;
 	struct _JoinNode* inputR;
