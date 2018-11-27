@@ -315,19 +315,26 @@ void JoinSet::order_by_join() {
 			}
 		}
 		joined_num_keys = min_cost_join.second;
+	//-----------right value-----------
 		utable_t find_targetR = join_info[min_cost_join.first].inputR.first;	
 		utable_t find_targetS = join_info[min_cost_join.first].inputS.first;	
 		auto find_resultR = std::find(joined_table.begin(), joined_table.end(), find_targetR);
 		auto find_resultS = std::find(joined_table.begin(), joined_table.end(), find_targetS);
-		
+		char isFindResultR = 0;
+		char isFindResultS = 0;
 		if (find_resultR == std::end(joined_table))
-			joined_table.push_back(join_info[min_cost_join.first].inputR.first);
+			isFindResultR = 1;
 		if (find_resultS == std::end(joined_table))
+			isFindResultS = 1;
+		if(isFindResultR && min_cost_join.first != -1)
+			joined_table.push_back(join_info[min_cost_join.first].inputR.first);
+		if(isFindResultS && min_cost_join.first != -1)
 			joined_table.push_back(join_info[min_cost_join.first].inputS.first);
 
-		sorted_join_infos.push_back(join_info[min_cost_join.first]);
-		this->join_info.erase(this->join_info.begin() + min_cost_join.first);
-	
+		if (min_cost_join.first != -1) {
+			sorted_join_infos.push_back(join_info[min_cost_join.first]);
+			this->join_info.erase(this->join_info.begin() + min_cost_join.first);
+		}	
 		if (this->join_info.empty()) {
 			break;
 			std::cout << "join info is not empty" <<std::endl;
