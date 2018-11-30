@@ -101,6 +101,12 @@ void JoinSet::parser(std::string query) {
 		if (index == -1) {
 			tid = join_info.inputR.first;
 			table_info.tid = tid; //join_info.inputR.first;
+			
+			//col_info.index = 0;
+		//	col_info.min = CATALOGINITMIN;
+		//	col_info.max = CATALOGINITMAX;
+		//	table_info.col.push_back(col_info);
+
 			col_info.index = join_info.inputR.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
@@ -111,18 +117,27 @@ void JoinSet::parser(std::string query) {
 
 			table_info.join_data = new JoinData;
 			table_info.join_data->meta.push_back(meta);
+			
+			if (join_info.inputR.second -1 != 0) 
+				table_info.join_data->meta[0].col_index.push_back(0);
 			table_info.join_data->meta[0].col_index.push_back(join_info.inputR.second - 1);
-
+			
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
 			tid = join_info.inputR.first;
 			table_info.tid = tid;
+			//col_info.index = 0;
+			//col_info.min = CATALOGINITMIN;
+			//col_info.max = CATALOGINITMAX;
+			//this->table_info[index].col.push_back(col_info);
 			col_info.index = join_info.inputR.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
 			this->table_info[index].col.push_back(col_info);
-
+			
+			if (join_info.inputR.second -1 != 0) 
+				this->table_info[index].join_data->meta[0].col_index.push_back(0);
 			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputR.second - 1);
 			
 		} 
@@ -134,6 +149,12 @@ void JoinSet::parser(std::string query) {
 		if (index == -1) {
 			tid = join_info.inputS.first;
 			table_info.tid = tid; //join_info.inputS.first;
+			
+			//col_info.index = 0;
+			//col_info.min = CATALOGINITMIN;
+			//col_info.max = CATALOGINITMAX;
+			//table_info.col.push_back(col_info);
+
 			col_info.index = join_info.inputS.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
@@ -145,15 +166,24 @@ void JoinSet::parser(std::string query) {
 			table_info.join_data = new JoinData;
 			table_info.join_data->meta.push_back(meta);
 			table_info.join_data->meta[0].col_index.push_back(join_info.inputS.second - 1);
-			
+
+			if (join_info.inputS.second -1 != 0) 
+				table_info.join_data->meta[0].col_index.push_back(0);
 			this->table_info.push_back(table_info);
 		}
 		else if (index != -1 && !isColExist) {
+			
+			//col_info.index = 0;
+			//col_info.min = CATALOGINITMIN;
+			//col_info.max = CATALOGINITMAX;
+			//this->table_info[index].col.push_back(col_info);
 			col_info.index = join_info.inputS.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
 			this->table_info[index].col.push_back(col_info);
 		
+			if (join_info.inputS.second -1 != 0) 
+				this->table_info[index].join_data->meta[0].col_index.push_back(0);
 			this->table_info[index].join_data->meta[0].col_index.push_back(join_info.inputS.second - 1);	
 		} 
 	}
@@ -528,7 +558,7 @@ JoinTree::join_point_size() {
 //return -1 error
 int 
 JoinTree::get_op_index(JoinData join_data, utable_t tid, int index) {
-	int ret = 0;
+	/*int ret = 0;
 	std::vector<TableMeta> meta = join_data.meta;
 	std::cout << "route" << std::endl;
 	for (std::vector<TableMeta>::iterator meta_iter = meta.begin(); meta_iter != meta.end(); ++meta_iter) {
@@ -552,7 +582,29 @@ JoinTree::get_op_index(JoinData join_data, utable_t tid, int index) {
 		}
 	}
 	std::cout << std::endl;
+	return -1;*/
+
+	int ret = 0;
+	std::vector<TableMeta> meta = join_data.meta;
+	std::cout << "route" << std::endl;
+	for (std::vector<TableMeta>::iterator meta_iter = meta.begin(); meta_iter != meta.end(); ++meta_iter) {
+		if(meta_iter->tid != tid) {
+			continue;
+		}
+		for (std::vector<int>::iterator col_iter = meta_iter->col_index.begin(); col_iter != meta_iter->col_index.end(); ++col_iter) {
+			if((*col_iter) != index) {
+				std::cout << (*col_iter) << ' ';
+				ret++;
+				continue;
+			}
+			std::cout << (*col_iter) << std::endl;
+			std::cout << "(success)" << std::endl;
+			return ret;
+		}
+	}
+	std::cout << std::endl;
 	return -1;
+
 }
 
 JoinData* 
@@ -637,7 +689,7 @@ JoinTree::join(JoinNode* join_node) {
 		for (std::vector<std::vector<udata_t>>::iterator s_op_iter = join_node->inputS->ops.begin(); s_op_iter != join_node->inputS->ops.end(); ++s_op_iter) {
 			//r_meta[].col_index[r_index]
 			//s_meta[].col_index[s_index] --> trans to join table col index
-			if (r_op_iter[0][ ]== s_op_iter[0][s_index]) {
+			if (r_op_iter[0][r_index]== s_op_iter[0][s_index]) {
 				// ----- if wrong fix!! ----
 				//sum two vector
 				if (isInclude) {
