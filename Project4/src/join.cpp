@@ -347,8 +347,8 @@ void JoinSet::order_by_join() {
 unumber_t JoinSet::join_cost(unumber_t num_key1, utable_t tid1, int col1, unumber_t num_key2, utable_t tid2, int col2) {
 	unumber_t cost1, cost2;
 	unumber_t min1, min2, max1, max2;
-	unumber_t intersection_max = CATALOGINITMIN;
-	unumber_t intersection_min = CATALOGINITMAX;
+	unumber_t intersection_max = CATALOGINITMAX;
+	unumber_t intersection_min = CATALOGINITMIN;
 	double avg_cost, avg_cost1, avg_cost2;
 		
 
@@ -361,9 +361,9 @@ unumber_t JoinSet::join_cost(unumber_t num_key1, utable_t tid1, int col1, unumbe
 						
 					//std::cout << "min1: " << min1 << std::endl;
 					//std::cout << "max1: " << max1 << std::endl;
-					if (intersection_min < min1)
+					if (intersection_min > min1)
 						intersection_min = min1;
-					if (intersection_max > max1)
+					if (intersection_max < max1)
 						intersection_max = max1;
 
 					//set avg_cost1
@@ -383,9 +383,9 @@ unumber_t JoinSet::join_cost(unumber_t num_key1, utable_t tid1, int col1, unumbe
 					
 					//std::cout << "min2: " << min2 << std::endl;
 					//std::cout << "max2: " << max2 << std::endl;
-					if (intersection_min < min2)
+					if (intersection_min > min2)
 						intersection_min = min2;
-					if (intersection_max > max2)
+					if (intersection_max < max2)
 						intersection_max = max2;
 					
 					//set avg_cost1
@@ -589,6 +589,10 @@ JoinTree::join(JoinNode* join_node) {
 
 	int r_index = get_op_index(r_join_data, meta.inputR.first, meta.inputR.second - 1);
 	int s_index = get_op_index(s_join_data, meta.inputS.first, meta.inputS.second - 1);
+	
+	std::cout << "r index: " << r_index << std::endl;
+	std::cout << "s index: " << s_index << std::endl;
+
 
 	std::cout << meta.inputR.first << ' ' << meta.inputR.second - 1 << std::endl;
 	std::cout << meta.inputS.first << ' ' << meta.inputS.second - 1 << '\n' <<  std::endl;
@@ -631,7 +635,10 @@ JoinTree::join(JoinNode* join_node) {
 
 	for (std::vector<std::vector<udata_t>>::iterator r_op_iter = join_node->inputR->output.ops.begin(); r_op_iter != join_node->inputR->output.ops.end(); ++r_op_iter) {
 		for (std::vector<std::vector<udata_t>>::iterator s_op_iter = join_node->inputS->ops.begin(); s_op_iter != join_node->inputS->ops.end(); ++s_op_iter) {
-			if (r_op_iter[r_index] == s_op_iter[s_index]) {
+			//r_meta[].col_index[r_index]
+			//s_meta[].col_index[s_index] --> trans to join table col index
+			if (r_op_iter[0][ ]== s_op_iter[0][s_index]) {
+				// ----- if wrong fix!! ----
 				//sum two vector
 				if (isInclude) {
 					join_node->output.ops.push_back(*r_op_iter);
