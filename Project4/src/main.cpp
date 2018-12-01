@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
+#include <vector>
+#include <iostream>
 #include "types.h"
 #include "params.h"
+#include "join_struct.h"
 #include "queue.h"
 #include "pages.h"
 #include "lock.h"
@@ -10,6 +13,7 @@
 #include "disks.h"
 #include "buffers.h"
 #include "views.h"
+#include "join.h"
 //========================
 #include "utils.h"
 
@@ -203,7 +207,10 @@ void client_loop() {
 			case 'i':
 				scanf("%ld %ld", &tid, &key);
 				j = 0;
-				memset(value, 0, sizeof(udata_t) * 15);
+				//memset(value, 0, sizeof(udata_t) * 15);
+				for (int i = 0; i < 15; i++) {
+					value[i] = 0;
+				}
 				// one missing input	
 				do {
 					if (j < 15) 
@@ -213,7 +220,7 @@ void client_loop() {
 				break;
 			case 'd':
 				scanf("%ld %ld", &tid, &key);
-				delete(tid, key); 
+				erase(tid, key); 
 				break;
 			case 'f':
 				scanf("%ld %ld", &tid, &key);
@@ -274,7 +281,54 @@ main (int argc, char ** argv) {
 	utable_t tid = open_table(table_path);
 	test(tid);
 	*/
-	init_db(num_buf);
-	client_loop();
+//	init_db(num_buf);
+//	client_loop();
 	//test(tid);
+	init_db(num_buf);
+
+	utable_t tid1 = open_table("a", 3);
+	utable_t tid2 = open_table("b", 3);
+	utable_t tid3 = open_table("c", 3);
+	utable_t tid4 = open_table("d", 3);
+	udata_t* value;
+	value = (udata_t*)malloc(sizeof(udata_t) * 15);
+	int j = 0;
+	for (int i = 0; i < 15; i++) {
+		value[i] = 0;
+	}
+
+	for (int i = 1; i < 12; i++) {
+		value[0] = i*3 + 1;
+		value[1] = i*3 + 2;
+		insert(tid1, i*3, value);
+	}
+	for (int i = 1; i < 14; i++) {
+		value[0] = i*3;
+		value[1] = i*3+1;
+		insert(tid1, i*3 + 2, value);
+	}
+	for (int i = 1; i < 5; i++) {
+		value[0] = i*3 + 1;
+		value[1] = i*3+ 2;
+		insert(tid1, i*3, value);
+	}
+	for (int i = 1; i < 16; i++) {
+		value[0] = i*3 + 1;
+		value[1] = i*3+2;
+		insert(tid1, i*3, value);
+	}
+
+	JoinSet join_set;
+	JoinTree join_tree;
+
+	join_set.parser("1.1=2.2&2.1=4.3");
+	
+	close_table(tid1);
+	close_table(tid2);
+	close_table(tid3);
+	close_table(tid4);
+	
+
+	
+
 }

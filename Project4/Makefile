@@ -15,9 +15,9 @@ TARGET_OBJ:=$(SRCDIR)main.o
 SRCS_FOR_LIB:=$(SRCS) 
 OBJS_FOR_LIB:=$(SRCS_FOR_LIB:.cpp=.o) 
 
-CFLAGS+= -g -fPIC -I
-$(INC) CPPFLAGS+= -g -fPIC -I 
-$(INC) TARGET=main
+CFLAGS+= -g -fPIC -I $(INC) 
+CPPFLAGS+= -g -fPIC -I $(INC) 
+TARGET=main
 
 all: $(TARGET) 
 $(TARGET): $(OBJS) 	

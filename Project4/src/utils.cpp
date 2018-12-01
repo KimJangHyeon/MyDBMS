@@ -118,7 +118,7 @@ d_print_mnode(NodePage np) {
                 for( int i = 0; i <= lp.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", lp.record[i].key);
-                        printf("value: %s\n", (lp.record[i].value));
+                        //printf("value: %s\n", (lp.record[i].value));
                 }
         }
         else {
@@ -130,7 +130,7 @@ d_print_mnode(NodePage np) {
                 for( int i = 0; i <= ip.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", ip.record[i].key);
-                        printf("value: %ld\n", ip.record[i].offset);
+                        //printf("value: %ld\n", ip.record[i].offset);
 
                 }
         }
@@ -154,7 +154,7 @@ d_print_dnode(utable_t tid, uoffset_t offset) {
                 for( int i = 0; i < lp.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", lp.record[i].key);
-                        printf("value: %s\n", (lp.record[i].value));
+         //               printf("value: %s\n", (lp.record[i].value));
                 }
         }
         else {
@@ -166,7 +166,7 @@ d_print_dnode(utable_t tid, uoffset_t offset) {
                 for( int i = 0; i < ip.header_top.num_keys; i++) {
                         printf("[%d]\n", i);
                         printf("key: %ld\n", ip.record[i].key);
-                        printf("value: %ld\n", ip.record[i].offset);
+           //             printf("value: %ld\n", ip.record[i].offset);
 
                 }
         }
