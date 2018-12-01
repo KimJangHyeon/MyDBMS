@@ -13,6 +13,7 @@
 
 int JoinSet::get_tid_index(utable_t tid, int index, char &isColExist) {
 	int ret_index = 0;
+
 	for (std::vector<TableInfo>::iterator iter = table_info.begin(); iter != table_info.end(); ++iter) {
 		if (tid != iter->tid) {
 			ret_index++;
@@ -98,11 +99,11 @@ void JoinSet::parser(std::string query) {
 		index = get_tid_index(join_info.inputR.first, join_info.inputR.second - 1, isColExist);	
 
 
-		if (index == -1) {
+		if (index == -1 && !isColExist) {
 			tid = join_info.inputR.first;
 			table_info.tid = tid; //join_info.inputR.first;
 			
-			//col_info.index = 0;
+		//	col_info.index = 0;
 		//	col_info.min = CATALOGINITMIN;
 		//	col_info.max = CATALOGINITMAX;
 		//	table_info.col.push_back(col_info);
@@ -127,10 +128,10 @@ void JoinSet::parser(std::string query) {
 		else if (index != -1 && !isColExist) {
 			tid = join_info.inputR.first;
 			table_info.tid = tid;
-			//col_info.index = 0;
-			//col_info.min = CATALOGINITMIN;
-			//col_info.max = CATALOGINITMAX;
-			//this->table_info[index].col.push_back(col_info);
+			col_info.index = 0;
+			col_info.min = CATALOGINITMIN;
+			col_info.max = CATALOGINITMAX;
+			this->table_info[index].col.push_back(col_info);
 			col_info.index = join_info.inputR.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
@@ -146,14 +147,14 @@ void JoinSet::parser(std::string query) {
 		index = get_tid_index(join_info.inputS.first, join_info.inputS.second - 1, isColExist);	
 
 		//std::cout << index << std::endl;
-		if (index == -1) {
+		if (index == -1 && !isColExist) {
 			tid = join_info.inputS.first;
 			table_info.tid = tid; //join_info.inputS.first;
 			
-			//col_info.index = 0;
-			//col_info.min = CATALOGINITMIN;
-			//col_info.max = CATALOGINITMAX;
-			//table_info.col.push_back(col_info);
+		//	col_info.index = 0;
+		//	col_info.min = CATALOGINITMIN;
+		//	col_info.max = CATALOGINITMAX;
+		//	table_info.col.push_back(col_info);
 
 			col_info.index = join_info.inputS.second - 1;
 			col_info.min = CATALOGINITMIN;
@@ -173,10 +174,10 @@ void JoinSet::parser(std::string query) {
 		}
 		else if (index != -1 && !isColExist) {
 			
-			//col_info.index = 0;
-			//col_info.min = CATALOGINITMIN;
-			//col_info.max = CATALOGINITMAX;
-			//this->table_info[index].col.push_back(col_info);
+			col_info.index = 0;
+			col_info.min = CATALOGINITMIN;
+			col_info.max = CATALOGINITMAX;
+			this->table_info[index].col.push_back(col_info);
 			col_info.index = join_info.inputS.second - 1;
 			col_info.min = CATALOGINITMIN;
 			col_info.max = CATALOGINITMAX;
