@@ -25,16 +25,16 @@ int cut(int);
 void make_leaf(LeafPage*);
 void make_inter(InternalPage*);
 int get_left_index(uoffset_t left_offset, InternalPage* parent); 
-void insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, udata_t[], LeafPage* leaf);
+void insert_into_leaf(utable_t tid, uoffset_t offset, unumber_t num_col, ukey64_t key, udata_t[], LeafPage* leaf);
 void insert_into_new_root(utable_t, ukey64_t, ukey64_t, uoffset_t, uoffset_t, NodePage*, NodePage*);
 void insert_into_node(utable_t, uoffset_t, int, ukey64_t, uoffset_t, InternalPage*);
 void insert_into_node_after_splitting(int, utable_t, ukey64_t, uoffset_t, uoffset_t, InternalPage*);
 void insert_into_parent(utable_t, ukey64_t, ukey64_t, uoffset_t, uoffset_t, NodePage*, NodePage*);
-void insert_into_leaf_after_splitting(uoffset_t, utable_t, ukey64_t, udata_t[], LeafPage*); 
+void insert_into_leaf_after_splitting(uoffset_t, utable_t, unumber_t, ukey64_t, udata_t[], LeafPage*); 
 
 //delete
 void delete_entry(utable_t tid, uoffset_t, uoffset_t, ukey64_t, NodePage*);
-void remove_entry_from_node(utable_t, uoffset_t, uoffset_t, ukey64_t, NodePage*);
+void remove_entry_from_node(utable_t, uoffset_t, uoffset_t, unumber_t, ukey64_t, NodePage*);
 void adjust_root(utable_t, uoffset_t, NodePage*);
 int get_neighbor_index(utable_t tid, uoffset_t offset, NodePage* knode);
 
@@ -69,6 +69,10 @@ make_leaf(LeafPage* leaf) {
 	leaf->header_top.poffset = 0;
 	leaf->header_top.isLeaf = True;
 	leaf->header_top.num_keys = 0;
+	for (int i = 0; i < NMAXVAL; i++) {
+		leaf->catalog.info[i].min = CATALOGINITMIN;
+		leaf->catalog.info[i].max = CATALOGINITMAX;
+	}
 	leaf->sibling = 0;
 }
 
@@ -78,6 +82,116 @@ int get_left_index(uoffset_t left_offset, InternalPage* parent) {
 			parent->record[left_index].offset != left_offset)
 		left_index++;
 	return left_index;
+}
+
+
+void 
+catalog_delete(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t value[NMAXVAL]) {
+	udata_t min, max, old_min, old_max;
+	udata_t candidate_value;
+	int index;
+	for (int i = 0; i < num_col - 1; i++) {
+		min = leaf->catalog.info[i].max;
+		old_min = leaf->catalog.info[i].min;
+		max = leaf->catalog.info[i].min;
+		old_max = leaf->catalog.info[i].max;
+		if (old_min == value[i]) {
+			for (int j = 0; j < num_key; j++) {
+				candidate_value = leaf->record[j].value[i];
+				if ((min > candidate_value) && (old_min != candidate_value)) {
+					min = candidate_value;
+				} 
+			}
+			leaf->catalog.info[i].min = min;
+		} else if ((old_min > value[i])) {
+			printf("catalog_delete: min > value err!!\n");
+			exit(0);
+		}
+
+		if (old_max == value[i]) {
+			for (int j = 0; j < num_key; j++) {
+				candidate_value = leaf->record[j].value[i];
+				if ((max < candidate_value) && (old_max != candidate_value)) {
+					max = candidate_value;	
+				}
+			}
+			leaf->catalog.info[i].max = max;
+		} else if (old_max < value[i]) {
+			printf("catalog_delete: max < value err!!\n");
+			exit(0);
+		}
+	}
+
+	for (int i = 0; i < num_col - 1; i++) {
+		min = leaf->catalog.info[i].min;
+		max = leaf->catalog.info[i].max;
+
+		printf("min: %ld, max: %ld\n", min, max);
+	}
+}
+
+void 
+catalog_insert(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t value[NMAXVAL]) {
+	udata_t min, max;
+	for (int i = 0; i < num_col - 1; i++) {
+		if (num_key > 1) {
+			min = leaf->catalog.info[i].min;
+			max = leaf->catalog.info[i].max;
+		} else {
+			min = CATALOGINITMIN;
+			max = CATALOGINITMAX;
+		}
+		if (min > value[i]) 
+			leaf->catalog.info[i].min = value[i];
+		
+		if (max < value[i]) 
+			leaf->catalog.info[i].max = value[i];
+	}
+
+	for (int i = 0; i < num_col - 1; i++) {
+		min = leaf->catalog.info[i].min;
+		max = leaf->catalog.info[i].max;
+
+		printf("min: %ld, max: %ld\n", min, max);
+	}
+
+}
+
+void
+catalog_insert_split(LeafPage* leaf, unumber_t num_col, unumber_t num_key) {
+	udata_t min, max, old_min, old_max;
+	udata_t candidate_value;
+	int index;
+	for (int i = 0; i < num_col - 1; i++) {
+		min = CATALOGINITMIN;
+		max = CATALOGINITMAX;
+	
+		//get min
+		for (int j = 0; j < num_key; j++) {
+			candidate_value = leaf->record[j].value[i];
+			if (min > candidate_value) {
+				min = candidate_value;
+			} 
+		}
+		leaf->catalog.info[i].min = min;
+
+		//get max
+		for (int j = 0;i < num_key; j++) {
+			candidate_value = leaf->record[j].value[i];
+			if (max < candidate_value) {
+				max = candidate_value;	
+			}
+		}
+		leaf->catalog.info[i].max = max;
+	}
+
+	for (int i = 0; i < num_col - 1; i++) {
+		min = leaf->catalog.info[i].min;
+		max = leaf->catalog.info[i].max;
+
+		printf("min: %ld, max: %ld\n", min, max);
+	}
+
 }
 
 //***************** find *******************
@@ -132,7 +246,7 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
  */
 
 void
-insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, udata_t value[], LeafPage* leaf) {
+insert_into_leaf(utable_t tid, uoffset_t offset, unumber_t num_col, ukey64_t key, udata_t value[], LeafPage* leaf) {
 	int i, insertion_point;
 
 	insertion_point = 0;
@@ -146,6 +260,7 @@ insert_into_leaf(utable_t tid, uoffset_t offset, ukey64_t key, udata_t value[], 
 	leaf->record[insertion_point].key = key;
 	memcpy(leaf->record[insertion_point].value, value, VALUESIZE);
 	leaf->header_top.num_keys++;
+	catalog_insert(leaf, num_col, leaf->header_top.num_keys, value);
 	write_buffer(tid, offset, (Page*)leaf);
 	return;
 }
@@ -290,7 +405,7 @@ insert_into_parent(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 	read_buffer(tid, poffset, (Page*)parent);
 
 	left_index = get_left_index(left_offset, parent);
-	
+
 	if(parent->header_top.num_keys < inter_order - 1) {
 		insert_into_node(tid, poffset, left_index, key_right, right_offset, parent);
 		return;
@@ -299,7 +414,7 @@ insert_into_parent(utable_t tid, ukey64_t key_left, ukey64_t key_right,
 }
 
 void
-insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, ukey64_t key, udata_t value[], LeafPage* leaf) {
+insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, unumber_t num_col, ukey64_t key, udata_t value[], LeafPage* leaf) {
 	LeafPage* new_leaf = (LeafPage*)malloc(sizeof(LeafPage));
 	Lrecord* temp_records = (Lrecord*)malloc(sizeof(Lrecord) * leaf_order);
 	int insertion_index, split, i, j;
@@ -343,6 +458,7 @@ insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, ukey64_t key, u
 		memset(new_leaf->record[i].value, 0, VALUESIZE);
 
 	//buffer lock
+	catalog_insert_split(new_leaf, num_col, new_leaf->header_top.num_keys);
 	new_offset = alloc_page(tid);
 	write_buffer(tid, new_offset, (Page*)new_leaf);
 	//unlock은 페어런트 확장 호출 끝나고
@@ -350,6 +466,7 @@ insert_into_leaf_after_splitting(uoffset_t offset, utable_t tid, ukey64_t key, u
 	leaf->sibling = new_offset;
 	for (i = leaf->header_top.num_keys; i < leaf_order - 1; i++)
 		memset(leaf->record[i].value, 0, VALUESIZE);
+	catalog_insert_split(leaf, num_col, leaf->header_top.num_keys);
 	write_buffer(tid, offset, (Page*)leaf);
 	
 	new_key = new_leaf->record[0].key;
@@ -382,9 +499,10 @@ get_neighbor_index(utable_t tid, uoffset_t offset, NodePage* knode) {
 }
 
 void
-remove_entry_from_node(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, NodePage* knode) {
+remove_entry_from_node(utable_t tid, uoffset_t koffset, uoffset_t toffset, unumber_t num_col, ukey64_t key, NodePage* knode) {
 	int i, num_keys;
 	int record_size;
+	udata_t value[NMAXVAL];
 
 	i = 0;
 	if(knode->header_top.isLeaf) {
@@ -392,10 +510,12 @@ remove_entry_from_node(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey6
 		//!=
 		while (kleaf->record[i].key != key)
 			i++;
+		memcpy(value, kleaf->record[i].value, sizeof(udata_t)*NMAXVAL);
 		for (++i; i < kleaf->header_top.num_keys; i++) 
 			memcpy(&(kleaf->record[i - 1]), &(kleaf->record[i]), LRECORDSIZE);
 		for (i = (--kleaf->header_top.num_keys); i < leaf_order; i++)
 			memset(&(kleaf->record[i]), 0, LRECORDSIZE);
+		catalog_delete(kleaf, num_col, kleaf->header_top.num_keys, value);
 		write_buffer(tid, koffset, (Page*)kleaf);
 	}
 	else {
@@ -544,12 +664,14 @@ delete_entry(utable_t tid, uoffset_t koffset, uoffset_t toffset, ukey64_t key, N
 	int k_prime_index, k_prime;
 	int capacity;
 	uoffset_t noffset;
+	unumber_t num_col;
 	//read lock
 
+	num_col = get_col(tid);
 	read_buffer(tid, HEADEROFFSET, (Page*)hp);
 	uoffset_t roffset = hp->r_page_offset;
 	//printf("delete entry start(%d)\n", ++entry_count);
-	remove_entry_from_node(tid, koffset, toffset, key, knode);
+	remove_entry_from_node(tid, koffset, toffset, num_col, key, knode);
 	if (knode->header_top.poffset == 0) {
 		adjust_root(tid, roffset, knode);
 		//printf("delete entry done(%d)\n", --entry_count);
@@ -648,6 +770,7 @@ insert(utable_t tid, ukey64_t key, udata_t value[]) {
 		leaf_page->record[0].key = key;
 		memcpy(leaf_page->record[0].value, value, VALUESIZE);
 		leaf_page->header_top.num_keys++;
+		catalog_insert(leaf_page, num_col, leaf_page->header_top.num_keys, value);
 		write_buffer(tid, node_offset, (Page*)leaf_page);	
 		return;
 	}
@@ -656,13 +779,13 @@ insert(utable_t tid, ukey64_t key, udata_t value[]) {
 	// just write on that page
 	if ( leaf_page->header_top.num_keys < leaf_order - 1) {
 		//buffer lock change ( read lock -> write lock ) { node_offset }
-		insert_into_leaf(tid, node_offset, key, value, leaf_page);
+		insert_into_leaf(tid, node_offset, num_col, key, value, leaf_page);
 		//buffer release 	
 		return;
 	}
 	
 	//buffer lock change ( read_lock -> write+up lock ) { node_offset }
-	insert_into_leaf_after_splitting(node_offset, tid, key, value, leaf_page);
+	insert_into_leaf_after_splitting(node_offset, tid, num_col, key, value, leaf_page);
 }
 
 void
