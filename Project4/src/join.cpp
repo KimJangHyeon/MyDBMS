@@ -160,7 +160,10 @@ JoinSet::get_spectrum(utable_t tid, int col) {
 
 			min = meta_iter->min;
 			max = meta_iter->max;
-			avg_cost = (double)(num_keys/(max - min));
+			if (max == min)
+				avg_cost = num_keys;
+			else
+				avg_cost = (double)(num_keys/(max - min));
 		}
 	}
 	return std::make_tuple(avg_cost, min, max);
@@ -179,6 +182,9 @@ JoinSet::get_joincost(double avg_cost1, udata_t min1, udata_t max1, double avg_c
 	double avg_cost = (avg_cost1 >avg_cost2) ? avg_cost2: avg_cost1;
 	udata_t min = (min1 > min2) ? min1 : min2;
 	udata_t max = (max1 > max2) ? max2 : max1;
+
+	if (max == min)
+		return avg_cost;
 
 	return (unumber_t)(avg_cost * (max - min));
 }
@@ -500,11 +506,19 @@ JoinTree::join(JoinNode* join_node) {
 unumber_t 
 JoinTree::join_all() {
 	JoinNode* jn;	
+	unumber_t sum = 0;
 	for (int i = 1; i < this->join_point.size(); i++) {
 		jn = this->join_point[i];
 		join(jn);
 		//join_node_print(*jn);
 	}
+	
+	for (int i = 0; i < header->output.ops.size(); i++) {
+		for (int j = 0; j < header->virtual_key_position.size(); j++) {
+			sum += header->output.ops[i][j];
+		}
+	}
+	return sum;
 }
 
 void 

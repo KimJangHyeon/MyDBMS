@@ -131,12 +131,10 @@ catalog_delete(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t va
 		}
 	}
 
-	fprintf(stderr, "num col: %ld\n", num_col);
 	for (int i = 0; i < num_col - 1; i++) {
 		min = leaf->catalog.info[i].min;
 		max = leaf->catalog.info[i].max;
 
-		printf("num col: %ld, min: %ld, max: %ld\n", num_col, min, max);
 	}
 }
 
@@ -162,9 +160,7 @@ catalog_insert(LeafPage* leaf, unumber_t num_col, unumber_t num_key, ukey64_t va
 		min = leaf->catalog.info[i].min;
 		max = leaf->catalog.info[i].max;
 
-		printf("min: %ld, max: %ld\n", min, max);
 	}
-	printf("--------------------\n");
 
 }
 
@@ -200,7 +196,6 @@ catalog_insert_split(LeafPage* leaf, unumber_t num_col, unumber_t num_key) {
 		min = leaf->catalog.info[i].min;
 		max = leaf->catalog.info[i].max;
 
-		printf("min: %ld, max: %ld\n", min, max);
 	}
 
 }

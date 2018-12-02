@@ -14,7 +14,6 @@
 //called open_table
 void
 init_table(utable_t tid, int num_col) {
-	printf("INIT TABLE!!!\n");
 	HeaderPage hp;
 	memset(&hp, 0, sizeof(HeaderPage)); 
 	hp.f_page_offset = 0;
@@ -24,7 +23,6 @@ init_table(utable_t tid, int num_col) {
 	hp.number_of_column = num_col;
 	flush_page(tid, HEADEROFFSET, (Page*)&hp);
 	write_buffer(tid, HEADEROFFSET, (Page*)&hp);
-	d_print_dpage(tid, 0, DHEADER);
 	extend_page(tid, 7);
 }
 

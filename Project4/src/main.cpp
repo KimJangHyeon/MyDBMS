@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -159,9 +160,23 @@ void test(utable_t tid) {
     }   */
 }
 
+void 
+tokenize(const std::string& s, const char delim, udata_t value[15]) {
+	std::string::size_type beg = 0;
+	std::string t;
+	int j = 0;
+	for (auto end = 0; (end = s.find(delim, end)) != std::string::npos;++end) {
+		beg = end + 1;
+		t = s.substr(beg, end-beg);
+		if (t.size() != 0)
+			value[j++] = std::stoul(s.substr(beg, end-beg), nullptr, 0);	
+	}
+	//value[j] = std::stoul(s.substr(beg), nullptr, 0);
+}
+
 char client() {
 	char choice;
-	printf("****************\nopen: o\nclose: c\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\nquit: q\n*****************\n");
+	//printf("****************\nopen: o\nclose: c\ninsert: i\ndelete: d\nfind: f\ntest: t\nprint tree: p\nquit: q\n*****************\n");
 	printf("> ");
 	scanf("%c", &choice);
 	return choice;
@@ -176,6 +191,14 @@ void client_loop() {
 	ukey64_t key;
 	udata_t* value = (udata_t*)malloc(sizeof(udata_t)* 15);
 	udata_t* temp;
+	std::string input;
+	std::vector<std::string> token;
+	std::string query;
+	JoinSet join_set = JoinSet();
+	JoinTree join_tree = JoinTree();
+		
+
+	
 	while(1) {
 		switch(client()) {
 			case 'o':
@@ -189,7 +212,7 @@ void client_loop() {
 					printf("table pool is full!!\n");
 					break;
 				}
-				printf("tid: %ld\n", tid);
+				printf("%ld\n", tid);
 				break;
 			case 'c':
 				scanf("%ld", &tid);
@@ -205,18 +228,18 @@ void client_loop() {
 					break;
 				}
 			case 'i':
-				scanf("%ld %ld", &tid, &key);
+				
+				std::cin >> tid;
+				std::cin >> key;
+				std::getline(std::cin, input);
+				
+				//scanf("%ld %ld", &tid, &key);
 				j = 0;
-				//memset(value, 0, sizeof(udata_t) * 15);
 				for (int i = 0; i < 15; i++) {
 					value[i] = 0;
 				}
 				
-				// one missing input	
-				do {
-					if (j < 15) 
-						scanf("%ld", &(value[j++]));
-				} while(getchar() != '\n'); 
+				tokenize(input, ' ', value);
 				insert(tid, key, value);
 				break;
 			case 'd':
@@ -240,6 +263,16 @@ void client_loop() {
 				}
 				printf("\n");
 				break;
+			case 'j':
+				std::cin >> query;
+				join_set.parser(query);
+				join_set.scanner();	
+
+				//join_set.join_order_print();
+				join_tree.make_tree(join_set.join_infos, join_set.join_datas);
+				std::cout << join_tree.join_all() << std::endl;
+				break;
+		
 			case 't':
 				scanf("%ld", &tid);
 				test(tid);
@@ -259,13 +292,6 @@ void client_loop() {
 		while(getchar() != '\n');
 	}
 }
-///HEERE
-//FIX CLOSE TABLE return 0 -1 1??
-// if -1 return no such tid
-// if 0 success
-// if 1 fail
-
-
 
 int
 main (int argc, char ** argv) {
@@ -279,10 +305,9 @@ main (int argc, char ** argv) {
     } else {
         panic((char*)"panic for input(buffer.c)");
     }
-//	init_db(num_buf);
-//	client_loop();
 	init_db(num_buf);
-
+	client_loop();
+	init_db(num_buf);
 	tid1 = open_table("a", 3);
 	tid2 = open_table("b", 3);
 	tid3 = open_table("c", 3);
@@ -298,7 +323,7 @@ main (int argc, char ** argv) {
 	//	if (j < 15) 
 	//		scanf("%ld", &(value[j++]));
 	//} while(getchar() != '\n'); 
-
+/*
 	for (int i = 1; i < 12; i++) {
 		value[0] = i*3 +1;
 		value[1] = i*3 +2;
@@ -322,15 +347,27 @@ main (int argc, char ** argv) {
 		value[1] = i*3 + 2;
 		insert(tid4, i*3, value);
 	}
+	*/
+	
+	value[0] = 2;
+	value[1] = 3;
+	insert(tid1, 1, value);
+	insert(tid2, 1, value);
+	value[0] = 2;
+	value[1] = 4;
+	insert(tid1, 2, value);
+	insert(tid2, 2, value);
+	
+
 	JoinSet join_set;
 	JoinTree join_tree;
 
-	join_set.parser("1.1=2.2&2.1=4.3&3.1=4.1");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
+	join_set.parser("1.1=2.1");//.2&2.1=4.3&3.1=4.1");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
 	join_set.scanner();	
 
 	//join_set.join_order_print();
 	join_tree.make_tree(join_set.join_infos, join_set.join_datas);
-	join_tree.join_all();
+	std::cout << join_tree.join_all() << std::endl;
 	
 	close_table(tid1);
 	close_table(tid2);
