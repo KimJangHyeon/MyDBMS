@@ -33,5 +33,5 @@ class JoinSet {
 		void join_infos_print();
 		void parser(std::string query);
 		void scanner();
-		void join_order();
+		void join_order_print();
 };

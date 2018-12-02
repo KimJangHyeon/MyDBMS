@@ -31,8 +31,6 @@ JoinSet::ditect_tid_col(std::vector<std::pair<utable_t, std::vector<int>>> &ret,
 		for (std::vector<std::pair<utable_t, std::vector<int>>>::iterator ret_iter = ret.begin();
 				ret_iter != ret.end(); ++ret_iter) {
 			if (ret_iter->first != t) {
-				std::cout << '(' << ret_iter->first << " = " << t << ')' << std::endl;
-				std::cout << tid_index <<std::endl;
 				tid_index++;
 				continue;
 			}
@@ -46,17 +44,13 @@ JoinSet::ditect_tid_col(std::vector<std::pair<utable_t, std::vector<int>>> &ret,
 			break;
 		}
 		if (!isTidExist) {
-			std::cout << "is tid not exist" << std::endl;
 			std::pair<utable_t, std::vector<int>> target;
 			target.first = t;
 			target.second.push_back(col);
 			ret.push_back(target);
 		} else if (!isColExist) {
-			std::cout << "is col not exist(" << tid_index << ")" << std::endl;
 			ret[tid_index].second.push_back(col);
 		}
-		std::cout << t << ' ' << col << std::endl;
-		std::cout << "------------------------------" << std::endl;
 }
 
 
@@ -166,7 +160,7 @@ JoinSet::get_spectrum(utable_t tid, int col) {
 
 			min = meta_iter->min;
 			max = meta_iter->max;
-			avg_cost = (double)((max - min)/num_keys);
+			avg_cost = (double)(num_keys/(max - min));
 		}
 	}
 	return std::make_tuple(avg_cost, min, max);
@@ -258,6 +252,7 @@ JoinSet::join_ordering() {
 
 			std::tie(avg1, r_min, r_max) = get_spectrum(r_tid, r_col);
 			std::tie(avg2, s_min, s_max) = get_spectrum(s_tid, s_col);
+
 			cmp_cost = get_joincost(avg1, r_min, r_max, avg2, s_min, s_max);
 			
 			if (cur_join_cost > cmp_cost) {
@@ -283,7 +278,7 @@ JoinSet::join_ordering() {
 			int candidate_index = candidate_join.first[i];
 		
 			std::tie(avg1, r_min, r_max) = get_spectrum(candidate_iter->input[0].first, candidate_iter->input[0].second);
-			avg1 = cur_join_cost;
+			avg1 = (double)cur_join_cost/(r_max - r_min);
 			std::tie(avg2, s_min, s_max) = get_spectrum(candidate_iter->input[1].first, candidate_iter->input[1].second);
 			
 			cmp_cost = get_joincost(avg1, r_min, r_max, avg2, s_min, s_max);
@@ -313,6 +308,7 @@ JoinSet::scanner() {
 		scan_table((*jd_iter));
 	}
 	join_ordering();
+	int i =0;
 }
 
 void
@@ -328,7 +324,7 @@ JoinSet::join_infos_print() {
 }
 
 void
-JoinSet::join_order() {
+JoinSet::join_order_print() {
 	for (int i = 0; i < join_infos.size(); i++) {
 		std::cout << '(' << join_infos[i].input[0].first << ", " << join_infos[i].input[0].second << " / "
 			<< join_infos[i].input[1].first << ", " << join_infos[i].input[1].second << ')' << std::endl;
@@ -459,7 +455,7 @@ JoinTree::make_tree(std::vector<JoinInfo> join_infos, std::vector<JoinData> join
 			out_node = make_leaf_node(r_data);
 			this->join_point.push_back(out_node);
 			r_node = out_node;
-			join_node_print(*out_node);
+			//join_node_print(*out_node);
 		}
 
 		s_data = make_data(join_datas, s_tid);
@@ -467,7 +463,7 @@ JoinTree::make_tree(std::vector<JoinInfo> join_infos, std::vector<JoinData> join
 		setting_node(out_node, *infos_iter);
 		this->join_point.push_back(out_node);
 		r_node = out_node;
-		join_node_print(*out_node);
+		//join_node_print(*out_node);
 	}
 	this->header = out_node;
 }
@@ -479,30 +475,36 @@ JoinTree::join(JoinNode* join_node) {
 	std::vector<udata_t> op;
 
 	//em-shi
-	if(join_node->inputR != NULL) {
+	/*if(join_node->inputR != NULL) {
 		if(join_node->inputR->inputR != NULL) {
 			JoinNode* del = join_node->inputR->inputR;
 			delete del->inputS;
 			delete del;
 			join_node->inputR->inputR = NULL;
 		}
-	}
+	}*/
 	
 	for (int i = 0; i < join_node->inputR->output.ops.size(); i++) {
 		for (int j = 0; j < join_node->inputS->ops.size(); j++) {
 			if (join_node->inputR->output.ops[i][r_target_index] == join_node->inputS->ops[j][s_target_index]) {
-				op = join_node->inputR->output.ops[i][r_target_index];
+				op = join_node->inputR->output.ops[i];
 				for (int k = 0; k < join_node->inputS->ops[j].size(); k++) 
-					op.push_back(join_node->inputS->ops[j][k];
+					op.push_back(join_node->inputS->ops[j][k]);
 				join_node->output.ops.push_back(op);
 			}
 		}
 	}
+	join_node->isDone = 1;
 }
 
 unumber_t 
 JoinTree::join_all() {
-	//HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11111
+	JoinNode* jn;	
+	for (int i = 1; i < this->join_point.size(); i++) {
+		jn = this->join_point[i];
+		join(jn);
+		//join_node_print(*jn);
+	}
 }
 
 void 
@@ -536,5 +538,8 @@ JoinTree::join_node_print(JoinNode node) {
 	std::cout<<std::endl;
 	if(node.inputS != NULL) 
 		join_data_print(*node.inputS);
+	std::cout << "----------------------------" <<std::endl;
+	if(node.output.ops.size() != 0)
+		join_data_print(node.output);
 	std::cout << "============================" <<std::endl;
 }

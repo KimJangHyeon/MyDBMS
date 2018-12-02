@@ -188,7 +188,6 @@ close_table(utable_t tid) {
 
 	
 	if (tid_exist(tid)) {
-		printf("do tid evict!!\n");
 		evict_tid_buffer(tid);
 	}
 

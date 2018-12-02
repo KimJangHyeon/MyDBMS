@@ -311,13 +311,13 @@ main (int argc, char ** argv) {
 		insert(tid2, i*3+2, value);
 	}
 	
-	for (int i = 1; i < 5; i++) {
+	for (int i = 3; i < 10; i++) {
 		value[0] = i*3 + 1;
 		value[1] = i*3 + 2;
 		insert(tid3, i*3, value);
 	}
 
-	for (int i = 10; i < 16; i++) {
+	for (int i = 8; i < 16; i++) {
 		value[0] = i*3 + 1;
 		value[1] = i*3 + 2;
 		insert(tid4, i*3, value);
@@ -325,14 +325,12 @@ main (int argc, char ** argv) {
 	JoinSet join_set;
 	JoinTree join_tree;
 
-	join_set.parser("1.1=2.2&2.1=4.3&3.1=4.2");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
+	join_set.parser("1.1=2.2&2.1=4.3&3.1=4.1");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
 	join_set.scanner();	
 
-	join_set.join_order();
+	//join_set.join_order_print();
 	join_tree.make_tree(join_set.join_infos, join_set.join_datas);
-
-	//for (int i = 0; i < join_tree.join_point_size(); i++) 
-	//	join_tree.join(join_tree.join_address(i));
+	join_tree.join_all();
 	
 	close_table(tid1);
 	close_table(tid2);
