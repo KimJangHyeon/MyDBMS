@@ -883,7 +883,7 @@ scan_table(JoinData &jd) {
 	LeafPage* lp = get_left_leaf(tid);
 	ukey32_t num_keys;
 	unumber_t global_num_keys = 0;
-
+	uoffset_t sibling;
 
 	//is tree empty
 	if (lp == NULL) {
@@ -909,19 +909,23 @@ scan_table(JoinData &jd) {
 		
 		get_page_op(num_keys, lp, ops, jd.meta);
 		
-		if (lp->sibling == 0)
+		if (lp->sibling == 0) {
+
 			break;
+		}
 
 		else {
+			sibling = lp->sibling;
 			free(lp);
 			lp = (LeafPage*)malloc(sizeof(LeafPage));
-			read_buffer(tid, lp->sibling, (Page*)lp);
+			read_buffer(tid, sibling, (Page*)lp);
 		}
 	}
 	jd.ops = ops;
 
 	if (lp->header_top.num_keys == 0) {
 		printf("err!!! no page scan table\n");
+		d_print_mpage(tid, (Page*)lp, 2);
 		exit(0);
 	}
 	jd.meta[0].max = lp->record[num_keys - 1].key;

@@ -510,7 +510,7 @@ JoinTree::join_all() {
 	for (int i = 1; i < this->join_point.size(); i++) {
 		jn = this->join_point[i];
 		join(jn);
-		//join_node_print(*jn);
+		join_node_print(*jn);
 	}
 	
 	for (int i = 0; i < header->output.ops.size(); i++) {

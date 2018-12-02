@@ -307,7 +307,7 @@ main (int argc, char ** argv) {
     }
 	init_db(num_buf);
 	client_loop();
-	init_db(num_buf);
+	/*init_db(num_buf);
 	tid1 = open_table("a", 3);
 	tid2 = open_table("b", 3);
 	tid3 = open_table("c", 3);
@@ -323,46 +323,36 @@ main (int argc, char ** argv) {
 	//	if (j < 15) 
 	//		scanf("%ld", &(value[j++]));
 	//} while(getchar() != '\n'); 
-/*
-	for (int i = 1; i < 12; i++) {
+
+	for (int i = 1; i < 1000; i++) {
 		value[0] = i*3 +1;
 		value[1] = i*3 +2;
 		insert(tid1, i*3, value);
 	}
 
-	for (int i = 1; i < 14; i++) {
+	for (int i = 332; i < 1300; i++) {
 		value[0] = i*3;
 		value[1] = i*3+1;
 		insert(tid2, i*3+2, value);
 	}
 	
-	for (int i = 3; i < 10; i++) {
+	for (int i = 703; i < 1500; i++) {
 		value[0] = i*3 + 1;
 		value[1] = i*3 + 2;
 		insert(tid3, i*3, value);
 	}
 
-	for (int i = 8; i < 16; i++) {
+	for (int i = 580; i < 1600; i++) {
 		value[0] = i*3 + 1;
 		value[1] = i*3 + 2;
 		insert(tid4, i*3, value);
 	}
-	*/
-	
-	value[0] = 2;
-	value[1] = 3;
-	insert(tid1, 1, value);
-	insert(tid2, 1, value);
-	value[0] = 2;
-	value[1] = 4;
-	insert(tid1, 2, value);
-	insert(tid2, 2, value);
 	
 
 	JoinSet join_set;
 	JoinTree join_tree;
-
-	join_set.parser("1.1=2.1");//.2&2.1=4.3&3.1=4.1");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
+				//	 2    2 . 2   2 . 2   2 . 0   0
+	join_set.parser("1.3=2.1&4.3=3.3&1.2=3.2&3.1=2.2");//.2&2.1=4.3&3.1=4.1");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
 	join_set.scanner();	
 
 	//join_set.join_order_print();
@@ -376,4 +366,5 @@ main (int argc, char ** argv) {
 
 	
 	//test(tid);
+*/
 }
