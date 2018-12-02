@@ -41,4 +41,5 @@
 #define FDCLOSE			-1
 #define True			1
 #define False			0
+#define IsKey			-1
 #define VUNUSED			1844674407370955164

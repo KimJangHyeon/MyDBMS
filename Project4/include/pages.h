@@ -1,4 +1,10 @@
 
+typedef struct _ColInfo {
+	int col;
+	udata_t min;
+	udata_t max;
+} ColInfo;
+
 typedef struct _L_Record {
     ukey64_t key;
     ukey64_t value[15];

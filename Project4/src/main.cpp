@@ -304,7 +304,6 @@ main (int argc, char ** argv) {
 		value[1] = i*3 +2;
 		insert(tid1, i*3, value);
 	}
-	d_print_tree(tid1);
 
 	for (int i = 1; i < 14; i++) {
 		value[0] = i*3;
@@ -323,27 +322,18 @@ main (int argc, char ** argv) {
 		value[1] = i*3 + 2;
 		insert(tid4, i*3, value);
 	}
-	d_print_tree(tid2);
 	JoinSet join_set;
 	JoinTree join_tree;
 
-	join_set.parser("1.1=2.2&2.1=4.3");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
-	join_set.scanner();
-	join_set.table_info_print();
-	join_set.join_info_print();
+	join_set.parser("1.1=2.2&2.1=4.3&3.1=4.2");//&3.2=1.2&4.1=3.1&4.2=1.2&3.1=2.3");
+	join_set.scanner();	
 
-	std::cout << "****************************" << std::endl;
+	join_set.join_order();
+	join_tree.make_tree(join_set.join_infos, join_set.join_datas);
 
-	join_set.order_by_join();
-	join_set.join_info_print();
-//	join_set.table_info_print();
-	std::cout << "************ JOIN TREE ****************" << std::endl;
-	join_tree.make_tree(join_set.join_info, join_set.table_info);
-	//join_tree.join_tree_print();
-	for (int i = 0; i < join_tree.join_point_size(); i++) 
-		join_tree.join(join_tree.join_address(i));
+	//for (int i = 0; i < join_tree.join_point_size(); i++) 
+	//	join_tree.join(join_tree.join_address(i));
 	
-	join_tree.join_tree_print();
 	close_table(tid1);
 	close_table(tid2);
 	close_table(tid3);

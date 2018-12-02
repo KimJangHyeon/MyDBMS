@@ -3,36 +3,35 @@ class JoinTree {
 		JoinNode* header;
 		std::vector<JoinNode*> join_point;
 		int node_meta_size(JoinNode*);
-	public:
-		JoinNode* make_node(utable_t, int, utable_t, int, JoinNode*, JoinData*);
-		int get_op_index(JoinData, utable_t, int); //tid, index exception for key
-		void make_tree(std::vector<JoinInfo> join_info, std::vector<TableInfo> table_info);
+		JoinNode* make_node(JoinNode* inputR, JoinData* inputS);
+		JoinNode* make_leaf_node(JoinData* inputR);
+		JoinData* make_data(std::vector<JoinData> join_datas, utable_t tid);
+		void setting_node(JoinNode*, JoinInfo);
+		bool sum_meta(std::vector<MetaInfo>&, std::vector<MetaInfo>);
+		int find_virtual_col(JoinData, utable_t, int);
 		void join(JoinNode* join_node);
-		JoinData* get_join_data(utable_t, std::vector<TableInfo> table_info);
-		void join_tree_print();
-		int join_point_size();
-		JoinNode* join_address(int index);
-
+	public:
+		void make_tree(std::vector<JoinInfo>, std::vector<JoinData>);	
+		unumber_t join_all();
+		void join_data_print(JoinData);
+		void join_node_print(JoinNode);
 };
 
-//parser -> TableInfo, num_join
-//scan -> Joindata
 class JoinSet {
 	private:
-		int num_join;
-		int get_tid_index(utable_t, int, char&);
-		unumber_t join_cost(unumber_t, utable_t, int, unumber_t, utable_t, int);
-		unumber_t get_num_key(utable_t);
+		std::vector<std::pair<utable_t, std::vector<int>>> put_join_infos(std::string query);
+		void ditect_tid_col(std::vector<std::pair<utable_t, std::vector<int>>>&, utable_t, int);
+		void put_join_datas(std::vector<std::pair<utable_t, std::vector<int>>>&);
+		void join_ordering();
+		std::tuple<double, udata_t, udata_t> get_spectrum(utable_t, int);
+		void swap(std::pair<utable_t, int>&, std::pair<utable_t, int>&);
+		unumber_t get_joincost(double, udata_t, udata_t, double, udata_t, udata_t);
+		std::pair<std::vector<int>, std::vector<JoinInfo>> get_join_candidate(std::vector<utable_t>);
 	public:
-		std::vector<JoinInfo> join_info; 
-		std::vector<JoinData> join_data;
-		std::vector<TableInfo> table_info;
-		void parser(std::string query);		//return num_join//join_info setting + make TableInfo
-		void scanner();					//sort<table_info> by join order
-		void order_by_join();
-		void sort_tables();
-		void join_info_print();
-		void table_info_print();
-		std::vector<JoinInfo> getValidJoin(std::vector<std::pair<utable_t, int>> inputR);	//need for sort_tables
-
+		std::vector<JoinInfo> join_infos;
+		std::vector<JoinData> join_datas;
+		void join_infos_print();
+		void parser(std::string query);
+		void scanner();
+		void join_order();
 };

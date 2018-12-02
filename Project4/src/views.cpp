@@ -844,84 +844,91 @@ get_left_leaf(utable_t tid) {
 
 }
 
-unumber_t 
-scan_table(utable_t tid, std::vector<ColInfo>* col_infos, JoinData* join_datas) {
+int 
+col_translater(int col) {
+	int ret = col - 2;
+	return ret;
+}
+
+void
+set_min_max_per_col(std::vector<MetaInfo> &meta, LeafPage* lp) {
+	for (std::vector<MetaInfo>::iterator meta_iter = meta.begin(); 
+			meta_iter != meta.end(); ++meta_iter) {
+		if (col_translater(meta_iter->col) == IsKey) 
+			continue;
+		if (lp->catalog.info[col_translater(meta_iter->col)].min < meta_iter->min) 
+			meta_iter->min = lp->catalog.info[col_translater(meta_iter->col)].min;
+		if (lp->catalog.info[col_translater(meta_iter->col)].max > meta_iter->max)
+			meta_iter->max = lp->catalog.info[col_translater(meta_iter->col)].max;
+	}
+}
+
+void
+get_page_op(ukey32_t num_keys, LeafPage* lp, std::vector<std::vector<udata_t>>& ops, std::vector<MetaInfo> meta) {
+	std::vector<udata_t> op;
+
+	for (int i = 0; i < num_keys; i++) {
+		op.clear();
+		for (std::vector<MetaInfo>::iterator meta_iter = meta.begin(); 
+				meta_iter != meta.end(); ++meta_iter) {
+			if (col_translater(meta_iter->col) == IsKey) {
+				op.push_back(lp->record[i].key);
+				continue;
+			}
+			op.push_back(lp->record[i].value[col_translater(meta_iter->col)]);
+		}
+		ops.push_back(op);
+	}
+}
+
+void 
+scan_table(JoinData &jd) {
+	utable_t tid = jd.meta[0].tid;	//always have index 0 value
+	std::vector<std::vector<udata_t>> ops;
 	LeafPage* lp = get_left_leaf(tid);
 	ukey32_t num_keys;
 	unumber_t global_num_keys = 0;
-	int init_i;
-	std::vector<udata_t> op;
 
+
+	//is tree empty
 	if (lp == NULL) {
-		//is tree empty
-		return 0;
+		return;
 	}
-	if ((*col_infos)[0].index == 0) {
-		//init_i = 1;
+
+	if (jd.meta[0].col == 1) {
 		if (lp->header_top.num_keys == 0) {
 			printf("error left lp is 0\n");
 			exit(0);
 		}
-		(*col_infos)[0].min = lp->record[0].key;
+		jd.meta[0].min = lp->record[0].key;
 	} else {
-		//init_i = 0;
+
 	}
 
-	do {
-		//setting min max
-		for (std::vector<ColInfo>::iterator col_iter = (*col_infos).begin(); col_iter != (*col_infos).end(); ++col_iter) {
-			if (col_iter->index == 0)
-				continue;
-			if (lp->catalog.info[col_iter->index - 1].min < col_iter->min) {
-				col_iter->min = lp->catalog.info[col_iter->index - 1].min;
-			}
-
-			if (lp->catalog.info[col_iter->index - 1].max > col_iter->max) {
-				col_iter->max = lp->catalog.info[col_iter->index - 1].max;
-			}
-		}
-
-		//get ops
+	while(1) {
+		
 		num_keys = lp->header_top.num_keys;
 		global_num_keys += num_keys;
-		//get col data(make op)
-		for (int i = 0; i < num_keys; i++) {
-			op.clear();
-			char isInsertZero = 0;
-			for (std::vector<ColInfo>::iterator col_iter = (*col_infos).begin(); col_iter != (*col_infos).end(); ++col_iter) {
-				//if (col_iter->index == 0) {
-
-				if (!isInsertZero) {
-					op.push_back(lp->record[i].key);
-					isInsertZero = 1;
-				}
-
-				if (col_iter->index == 0) 
-					continue;
-				//} else {
-				op.push_back(lp->record[i].value[col_iter->index - 1]);
-				//}
-			}
-			join_datas->ops.push_back(op);
-		}
-
+		
+		set_min_max_per_col(jd.meta, lp);
+		
+		get_page_op(num_keys, lp, ops, jd.meta);
 		
 		if (lp->sibling == 0)
 			break;
+
 		else {
 			free(lp);
 			lp = (LeafPage*)malloc(sizeof(LeafPage));
 			read_buffer(tid, lp->sibling, (Page*)lp);
 		}
-		//init_i = 0;
-	} while(1);
-
-	if ((*col_infos)[0].index == 0) {
-		if (lp->header_top.num_keys == 0) {
-			printf("error left lp is 0\n");
-			exit(0);
-		}
-		(*col_infos)[0].max = lp->record[num_keys - 1].key;	
 	}
-	return global_num_keys;
+	jd.ops = ops;
+
+	if (lp->header_top.num_keys == 0) {
+		printf("err!!! no page scan table\n");
+		exit(0);
+	}
+	jd.meta[0].max = lp->record[num_keys - 1].key;
+	jd.num_col = global_num_keys;
 }
