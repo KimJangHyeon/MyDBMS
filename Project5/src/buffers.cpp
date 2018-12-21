@@ -34,6 +34,7 @@ init_db (int num_buf) {
 	for (int i = 0; i < num_buf; i++) {
 		memset(&(bp->buffers[i]), 0, sizeof(Buffer));
 		bp->buffers[i].frame = (Page*)malloc(sizeof(Page));
+		pthread_rwlock_init(&(bp->buffers[i].cb.latch), NULL);
 		bp->buffers[i].cb.state = Empty;
 		bp->buffers[i].cb.lru_next = -1;
 		bp->buffers[i].cb.lru_prev = -1;
@@ -299,20 +300,24 @@ read_buffer(utable_t tid, uoffset_t offset, Page* page) {
 	//d_print_buffer_hpage(bp, tid, offset);
 	//printf("read buffer(%ld, %ld)\n", tid, offset);
 	int index = access_buffer(tid, offset);
+	pthread_rwlock_rdlock(&(bp->buffers[index].cb.latch));
 	bp->buffers[index].cb.pin++;
 	memcpy(page, bp->buffers[index].frame, PAGESIZE);
 	bp->buffers[index].cb.pin--;
+	pthread_rwlock_unlock(&(bp->buffers[index].cb.latch));
 }
 
 void
 write_buffer(utable_t tid, uoffset_t offset, Page* page) {
 	//printf("write buffer(%ld, %ld)\n", tid, offset);
 	int index = access_buffer(tid, offset);
+	pthread_rwlock_wrlock(&(bp->buffers[index].cb.latch));
 	bp->buffers[index].cb.pin++;
 	if (!bp->buffers[index].cb.isDirty)
 		bp->buffers[index].cb.isDirty = 1;
 	memcpy(bp->buffers[index].frame, page, PAGESIZE);
 	bp->buffers[index].cb.pin--;
+	pthread_rwlock_unlock(&(bp->buffers[index].cb.latch));
 	//flush_page(tid, offset, page);
 }
 

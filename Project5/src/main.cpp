@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <pthread.h>
 #include "types.h"
 #include "params.h"
 #include "join_struct.h"
@@ -16,149 +17,79 @@
 #include "views.h"
 #include "join.h"
 #include "cc.h"
-//========================
 #include "utils.h"
 
-#define NTEST 10
-/*
-int storetest(utable_t);
-int reversetest(utable_t);
-int smalltest(utable_t);
-int inserttest(utable_t);
-int rsmalltest(utable_t);
-int endtest(utable_t);
+udata_t cc_d1 = 1;
+udata_t cc_d2 = 1;
 
-int (*testfunc[NTEST])(utable_t) = {
-    smalltest,
-    inserttest,
-    storetest,
-    rsmalltest,
-    reversetest,
-    endtest,
-};
+pthread_spinlock_t print_lock;
 
-char* testname[NTEST] = {
-    "smalltest",
-    "inserttest",
-    "storetest",
-    "rsmalltest",
-    "reversetest",
-    "end test",
-};
+void*
+cctest(void* arg){
+	utable_t tid = (utable_t)arg;
+	udata_t value[15];
+	int txn_id = 1;
+	int result;
+	udata_t* temp;
+	
+	value[0] = cc_d1;
+	value[1] = cc_d2;
 
-int endtest(utable_t tid) {
-    return 0;
+	for (int i = 0; i < 10000; i++) {
+		fprintf(stderr, "enter(%d)\n", i);
+		if (i % 100 == 0) {
+			__sync_fetch_and_add(&cc_d1, 1);
+			__sync_fetch_and_add(&cc_d2, 1);
+			value[0] = cc_d1;
+			value[1] = cc_d2;
+			update(tid, 1, value, txn_id, &result);
+		} else {
+			temp = find(tid, 1, txn_id, &result);	
+			
+			fprintf(stderr, "after find(%d)\n", i);
+			if (temp == NULL) {
+				printf("no such a key!!\n");
+			}
+			else {
+				pthread_spin_lock(&print_lock);
+				printf("find: ");
+				for (int i = 0; i < 15; i++) {
+					if (temp[i] != VUNUSED)
+						printf("%ld ", temp[i]);
+					else
+						break;
+				}
+				pthread_spin_unlock(&print_lock);
+			}
+			printf("\n");
+		}
+	}
+
 }
-
-int rsmalltest(utable_t tid) {
-    for (int i = 18; i >= 0; i--) {
-        insert(tid, i, "aa");
-    }
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    for (int i = 18; i >= 0; i--) {
-        delete(tid, i);
-        d_print_tree(tid);
-    }
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    return 1;
-}
-int inserttest(utable_t tid) {
-    for (int i = 0; i < 100000; i++) {
-        insert(tid, i, "aa");
-    }
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    for (int i = 0; i < 100000; i++) {
-        delete(tid, i);
-    	d_print_tree(tid);
-    }
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    return 1;
-}
-
-
-int smalltest(utable_t tid) {
-    d_free_page_ditector(tid);
-    insert(tid, 0, "a");
-    d_print_tree(tid);
-    insert(tid, 2, "a");
-    d_print_tree(tid);
-    insert(tid, 4, "a");
-    d_print_tree(tid);
-    insert(tid, 6, "a");
-    d_print_tree(tid);
-    insert(tid, 3, "a");
-    d_print_tree(tid);
-    insert(tid, 7, "a");
-    d_print_tree(tid);
-    //d_print_dpage(tid, 0, D_Header);
-    delete(tid, 0);
-    delete(tid, 2);
-    delete(tid, 3);
-    //d_print_dpage(tid, 0, D_Header);
-    d_print_tree(tid);
-    insert(tid, 0, "a");
-    insert(tid, 2, "a");
-    //d_print_dpage(tid, 0, D_Header);
-    d_print_tree(tid);
-    return 1;
-}
-
-
-int storetest(utable_t tid) {
-    for(int i = 0; i < LRECORD * 10; i++) {
-        insert(tid, i, "a");
-    }
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    for(int i = 0; i < LRECORD * 10; i++) {
-        delete(tid, i); 
-    }   
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    return 1;
-}
-
-
-int reversetest(utable_t tid) {
-    for(int i = LRECORD * 10 - 1; i >= 0; i--) {
-        insert(tid, i, "a");
-    }  
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    for(int i = LRECORD * 10 - 1; i >= 0; i--) {
-        delete(tid, i); 
-        d_print_tree(tid);
-    }   
-    d_print_dpage(tid, 0, DHEADER);
-    d_print_tree(tid);
-    return 1;
-}
-
 
 void 
-print_test(int i, bool isStart) {
-    printf("*\n*\n");
-    printf("%s ", testname[i]);
-    if(isStart)
-        printf("start");
-    else 
-        printf("done");
-    printf("\n*\n*\n");
-}*/
-void test(utable_t tid) {
-/*
-	int ret;
-    for (int i = 0; i < NTEST; i++) {
-        print_test(i, True);
-        ret = testfunc[i](tid);
-        print_test(i, False);
-        if (!ret) 
-            break;
-    }   */
+test(utable_t tid, int v_size) {
+	pthread_t thread[5];
+	udata_t value[15];
+	pthread_spin_init(&print_lock, NULL);
+	for (int i = 0; i < v_size - 1; i++) {
+		value[i] = 1;
+	}
+	for (int i = v_size - 1; i < 15; i++) {
+		value[i] = 0;
+	}
+	for (ukey64_t i = 0; i < 10000; i++) {
+		insert(tid, i, value); 
+	}
+	
+	for (int i = 0; i < 1; i++) {
+		pthread_create(&(thread[i]), NULL, cctest, (void*)tid);
+	}
+
+	for (int i = 0; i < 1; i++) {
+		pthread_join(thread[i], NULL);
+	}
+
 }
 
 void 
@@ -291,8 +222,8 @@ void client_loop() {
 				break;
 		
 			case 't':
-				scanf("%ld", &tid);
-				test(tid);
+				scanf("%ld %d", &tid, &j);
+				test(tid, j);
 				break;
 			case 'l':
 				debug_lru();

@@ -8,6 +8,7 @@ typedef enum _State {
 } State;
 
 typedef struct _ControlBlock {
+	pthread_rwlock_t latch;
 	State state;
 	utable_t tid;
 	uoffset_t off;
