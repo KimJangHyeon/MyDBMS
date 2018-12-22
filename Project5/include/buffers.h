@@ -26,6 +26,8 @@ typedef struct _Buffer {
 
 typedef struct _BufferPool {
 	IndexQueue* queue;
+	pthread_spinlock_t cp_latch;
+	pthread_spinlock_t lru_latch;
 	int num_buf;
 	int victim_index;
 	int latest_index;
