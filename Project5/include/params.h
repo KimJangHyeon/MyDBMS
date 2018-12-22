@@ -1,16 +1,23 @@
 
-
-//============= NUMBER ================
-//init
+//============= USERSETTING ============
 #define INIT_PAGE_NUM	8
 
-//constant
+#define LRECORD			4//30
+#define IRECORD			4//249
+
 #define TABLENAME		32
 #define NTABLE			10
 #define NTID			10
-#define LRECORD			4//30
-#define IRECORD			4//249
-#define FREEINIT		7
+
+
+#define EXTENDPERCENT	0.20
+#define MAXTXN			100000
+
+//============= NUMBER ================
+//init
+#define FREEINIT		(INIT_PAGE_NUM - 1)
+
+//constant
 #define NMAXVAL			15
 #define CATALOGINITMIN	1844674407370955164
 #define CATALOGINITMAX	0
@@ -33,8 +40,6 @@
 #define VALUESIZE		120
 #define IRECORDSIZE		16
 #define LRECORDSIZE		128
-//============= PERCENT ===============
-#define EXTENDPERCENT	0.20
 
 //============= SIGNAL ================
 #define TIDFULL			-1
@@ -47,3 +52,4 @@
 #define UPDATE_NO_TREE	1
 #define UPDATE_SUCCESS	0
 #define UPDATE_KEY_NOTFOUND		2
+

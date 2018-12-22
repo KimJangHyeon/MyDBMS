@@ -772,7 +772,6 @@ do_update(utable_t tid, ukey64_t key, udata_t value[], int* result) {
 	}
 
 	leaf_offset = find_leaf(tid, key, leaf_page);
-	d_print_mpage(tid, (Page*)leaf_page, 2);
 	if (leaf_offset == 0) {
 		*result = UPDATE_NO_TREE;
 		return;

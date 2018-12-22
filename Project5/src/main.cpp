@@ -2,9 +2,13 @@
 #include <stdlib.h>
 #include <cstring>
 #include <string>
+#include <list>
 #include <vector>
 #include <iostream>
 #include <pthread.h>
+
+using namespace std;
+
 #include "types.h"
 #include "params.h"
 #include "join_struct.h"
@@ -36,7 +40,6 @@ cctest(void* arg){
 	value[1] = cc_d2;
 
 	for (int i = 0; i < 10000; i++) {
-		fprintf(stderr, "enter(%d)\n", i);
 		if (i % 100 == 0) {
 			__sync_fetch_and_add(&cc_d1, 1);
 			__sync_fetch_and_add(&cc_d2, 1);
@@ -44,14 +47,13 @@ cctest(void* arg){
 			value[1] = cc_d2;
 			update(tid, 1, value, txn_id, &result);
 		} else {
+			pthread_spin_lock(&print_lock);
 			temp = find(tid, 1, txn_id, &result);	
 			
-			fprintf(stderr, "after find(%d)\n", i);
 			if (temp == NULL) {
 				printf("no such a key!!\n");
 			}
 			else {
-				pthread_spin_lock(&print_lock);
 				printf("find: ");
 				for (int i = 0; i < 15; i++) {
 					if (temp[i] != VUNUSED)
@@ -59,9 +61,9 @@ cctest(void* arg){
 					else
 						break;
 				}
-				pthread_spin_unlock(&print_lock);
 			}
 			printf("\n");
+			pthread_spin_unlock(&print_lock);
 		}
 	}
 
@@ -81,12 +83,12 @@ test(utable_t tid, int v_size) {
 	for (ukey64_t i = 0; i < 10000; i++) {
 		insert(tid, i, value); 
 	}
-	
-	for (int i = 0; i < 1; i++) {
+	fprintf(stderr, "TEST START!!\n");	
+	for (int i = 0; i < 5; i++) {
 		pthread_create(&(thread[i]), NULL, cctest, (void*)tid);
 	}
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 5; i++) {
 		pthread_join(thread[i], NULL);
 	}
 
