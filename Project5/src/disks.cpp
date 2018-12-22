@@ -75,13 +75,13 @@ load_page(utable_t tid, uoffset_t offset, Page* page) {
         int fd;
         open_disk(tid);
         fd = get_fd(tid);
-        if((size = pread(fd, page, PAGESIZE, offset)) == -1) {
+        while((size = pread(fd, page, PAGESIZE, offset)) == -1) {
                 printf("READ ERR: %s\n", strerror(errno));
                 panic("(load_page) load page pread panic!!\n");
         }
         close_disk(tid);
-        if(size != PAGESIZE) {
-                printf("d_size: %d\n", size);
+        while(size != PAGESIZE) {
+                printf("d_offsize: %ld %d\n", offset, size);
                 panic("(load_page) page size do not match panic!!\n");
         }
 }

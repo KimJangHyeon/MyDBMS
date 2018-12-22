@@ -255,11 +255,14 @@ find_leaf(utable_t tid, ukey64_t key, LeafPage* leaf_page) {
 		}
 		old_offset = new_offset;
 		new_offset = inter_page->record[i - 1].offset;
+	
 
+		//fprintf(stderr, "off: %ld\n", old_offset);
 		//buffer_lock(new_offset);
 		//buffer_release(old_offset);
 		read_buffer(tid, new_offset, (Page*)inter_page);
 	}
+	//fprintf(stderr, "off: %ld\n", new_offset);
 	memcpy(leaf_page, (LeafPage*)inter_page, PAGESIZE);
 	free(inter_page);
 	return new_offset;

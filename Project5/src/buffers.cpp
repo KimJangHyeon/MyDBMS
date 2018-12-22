@@ -236,13 +236,24 @@ evict_tid_buffer(utable_t tid) {
 }
 
 int 
-access_buffer(utable_t tid, uoffset_t offset) {
+access_buffer(utable_t tid, uoffset_t offset, char isWrite) {
 	char isEvict = 0;
 	//lru latch
 	pthread_spin_lock(&(bp->lru_latch));
 
 	//if has tid and offset==> (problem checked but it became targeted)
-	int index = find_buffer(tid, offset);
+	int index;// = find_buffer(tid, offset);
+	
+	while ((index = find_buffer(tid, offset)) != -1) {
+		pthread_rwlock_wrlock(&(bp->buffers[index].cb.latch));
+		
+		if ((bp->buffers[index].cb.tid == tid) && (bp->buffers[index].cb.off == offset)) {
+			break;
+		}else {
+			pthread_rwlock_unlock(&(bp->buffers[index].cb.latch));
+		}
+	}
+
 	if (index == -1) {
 		//cp latch
 		pthread_spin_lock(&(bp->cp_latch));
@@ -252,7 +263,17 @@ access_buffer(utable_t tid, uoffset_t offset) {
 		}
 		else {
 			index = dequeue_index(bp->queue);
-	
+		
+			
+			//TEST
+			if (index != -1) {
+				pthread_rwlock_wrlock(&(bp->buffers[index].cb.latch));
+				while(bp->buffers[index].cb.pin != 0) {
+					printf("pin not zero index != -1\n");
+				}
+			}
+
+
 			//is no empty buffer(do evict buffer)
 			if (index == -1) { 
 				isEvict = 1;
@@ -263,23 +284,25 @@ access_buffer(utable_t tid, uoffset_t offset) {
 			if (bp->buffers[index].cb.state == Empty) 
 				bp->buffers[index].cb.state = Prepare;
 	
+			//printf("tid: %ld, o: %ld\n", tid, offset);
 			bp->buffers[index].cb.tid = tid;
 			bp->buffers[index].cb.off = offset;
 	
 			if (bp->buffers[index].cb.state == Prepare) 
 				bp->buffers[index].cb.state = Loading;
-			
-			//printf("tid: %ld, o: %ld\n", tid, offset);
+
+			//fprintf(stderr, "accoff: %ld\n", offset);
 			load_page(tid, offset, bp->buffers[index].frame);
-	
+
+		
 			if (bp->buffers[index].cb.state == Loading) 
 				bp->buffers[index].cb.state = Running;
 
 			//buffer latch release
-			if (isEvict) {
+			//if (isEvict) {
 				//printf("access do latch(%d)\n", index);
-				pthread_rwlock_unlock(&(bp->buffers[index].cb.latch));
-			}
+			//	pthread_rwlock_unlock(&(bp->buffers[index].cb.latch));
+			//}
 			//cp latch release
 			pthread_spin_unlock(&(bp->cp_latch));
 		}
@@ -324,8 +347,8 @@ try_empty_buffer(utable_t tid, uoffset_t offset) {
 
 void
 read_buffer(utable_t tid, uoffset_t offset, Page* page) {
-	int index = access_buffer(tid, offset);
-	pthread_rwlock_rdlock(&(bp->buffers[index].cb.latch));
+	char isLock = 0;
+	int index = access_buffer(tid, offset, 0);
 	__sync_fetch_and_add(&(bp->buffers[index].cb.pin), 1);
 	memcpy(page, bp->buffers[index].frame, PAGESIZE);
 	__sync_fetch_and_add(&(bp->buffers[index].cb.pin), -1);
@@ -334,8 +357,8 @@ read_buffer(utable_t tid, uoffset_t offset, Page* page) {
 
 void
 write_buffer(utable_t tid, uoffset_t offset, Page* page) {
-	int index = access_buffer(tid, offset);
-	pthread_rwlock_wrlock(&(bp->buffers[index].cb.latch));
+	char isLock = 0;
+	int index = access_buffer(tid, offset, 1);
 	__sync_fetch_and_add(&(bp->buffers[index].cb.pin), 1);
 	if (!bp->buffers[index].cb.isDirty)
 		bp->buffers[index].cb.isDirty = 1;
