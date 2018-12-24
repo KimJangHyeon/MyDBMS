@@ -63,16 +63,21 @@ CC::global_release() {
 }
 
 bool
-CC::not_head_check_is_runnable(lock_t* head, lock_t* lock) {
+CC::not_head_check_is_runnable(int trx_id, lock_t* head, lock_t* lock) {
 	lock_t* node = head;
 	bool ret = 0;
 
 	while (node != lock) {
-		if (node->mode == EXCLUSIVE)
+		if ((node->mode == EXCLUSIVE) && (node->trx->trx_id != trx_id))
 			return 0;
-		if (node->mode == SHARED)
+		else if ((node->mode == EXCLUSIVE) && (node->trx->trx_id == trx_id)) 
 			ret = 1;
+		else if (node->mode == SHARED) {
+			ret = 1;
+		}
+		node = node->link;
 	}
+
 	return ret;
 }
 
@@ -99,8 +104,6 @@ CC::find_phash(unumber_t h_key, bool & isSuccess) {
 }
 
 
-//not done yet because how to handle case
-//	if front lock is my trx and is running what should be my mode
 bool 
 CC::marking_lock(int txn_id, unumber_t h_key, lock_t* lock) {
 	bool isSuccess;
@@ -128,10 +131,7 @@ CC::marking_lock(int txn_id, unumber_t h_key, lock_t* lock) {
 	} else if ((tphn->head != NULL) && (tphn->tail != NULL)) {
 		tphn->tail->link = lock;
 		tphn->tail = lock;
-		if (lock->mode == SHARED)
-			isRunnable = not_head_check_is_runnable(tphn->head, lock);
-		else 
-			isRunnable = 0;
+		isRunnable = not_head_check_is_runnable(txn_id, tphn->head, lock);
 	} else {
 		//err
 		fprintf(stderr, "marking lock err!! in header tail \n");

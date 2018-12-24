@@ -47,7 +47,7 @@ class CC {
 		trx_arr_t trx_arr;
 		vector<page_hash_node> phash;
 
-		bool not_head_check_is_runnable(lock_t* head, lock_t* lock);
+		bool not_head_check_is_runnable(int txn_id, lock_t* head, lock_t* lock);
 		void free_trx(trx_t * trx);
 		unumber_t find_phash(unumber_t h_key, bool & isSuccess);
 		
