@@ -8,18 +8,25 @@ enum trx_state {
 
 
 typedef struct _lock_t lock_t;
+
 typedef struct _trx_t {
 	int trx_id;
 	enum trx_state state;
 	list<lock_t*> trx_locks;
 	lock_t* wait_lock;
+
+	pthread_cond_t cond;
+	pthread_mutex_t mutex;
 } trx_t;
 
 typedef struct _lock_t {
 	utable_t tid;
 	ukey64_t key;
 	enum lock_mode mode;
-	trx_t* trx;	
+	udata_t old_value[15];
+	udata_t new_value[15];
+	trx_t* trx;
+	struct _lock_t* link;
 } lock_t;
 
 typedef struct _trx_arr_t {
@@ -31,26 +38,28 @@ typedef struct _page_hash_node {
 	lock_t* tail;
 	lock_t* head;
 	unumber_t key;
-	struct _page_hash_node * next;
 } page_hash_node;
 
-typedef struct _page_hash_t {
-	list<page_hash_node> hash_list;
-} page_hash_t;
 
 class CC {
 	private:
 		pthread_spinlock_t latch;
 		trx_arr_t trx_arr;
-		page_hash_t phash;
-		void free_trx(trx_t * trx);
+		vector<page_hash_node> phash;
 
+		bool not_head_check_is_runnable(lock_t* head, lock_t* lock);
+		void free_trx(trx_t * trx);
+		unumber_t find_phash(unumber_t h_key, bool & isSuccess);
+		
 	public:
+		CC();
+		trx_t* find_trx_pointer(int trx_id);	
 		void global_latch();
 		int get_trx();
-		char marking_lock(int txn_id, unumber_t h_key);	//return running or sleep
-		char deadlock_detection(int txn_id);	//return FAILED, SUCCESS
-		
+		void rm_trx(int txn_id);
+		bool marking_lock(int txn_id, unumber_t h_key, lock_t* lock);	//return running or sleep
+		bool deadlock_detection(int txn_id);	//return FAILED, SUCCESS
+		void do_undo();	
 		void global_release();
 };
 
