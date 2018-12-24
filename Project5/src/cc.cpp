@@ -98,6 +98,9 @@ CC::find_phash(unumber_t h_key, bool & isSuccess) {
 	return 0;
 }
 
+
+//not done yet because how to handle case
+//	if front lock is my trx and is running what should be my mode
 bool 
 CC::marking_lock(int txn_id, unumber_t h_key, lock_t* lock) {
 	bool isSuccess;
@@ -126,7 +129,7 @@ CC::marking_lock(int txn_id, unumber_t h_key, lock_t* lock) {
 		tphn->tail->link = lock;
 		tphn->tail = lock;
 		if (lock->mode == SHARED)
-			isRunnable = not_head_check_is_runnable(lock);
+			isRunnable = not_head_check_is_runnable(tphn->head, lock);
 		else 
 			isRunnable = 0;
 	} else {
@@ -171,7 +174,7 @@ make_lock(utable_t tid, ukey64_t key, bool mode, int trx_id) {
 		ret->mode = SHARED;
 	ret->trx = cc.find_trx_pointer(trx_id);
 	
-	if (ret_trx == NULL) {
+	if (ret->trx == NULL) {
 		fprintf(stderr, "make lock trx_id not found!!\n");
 		exit(0);
 	}
