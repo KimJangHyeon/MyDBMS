@@ -11,6 +11,8 @@ using namespace std;
 #include "views.h"
 #include "cc.h"
 
+
+
 unumber_t 
 get_pid(utable_t tid, ukey64_t key) {
 	uoffset_t offset;
@@ -32,6 +34,18 @@ erase(utable_t tid, ukey64_t key) {
 	return 0;
 }
 
+int 
+begin_tx() {
+	return __sync_fetch_and_add(&g_trx, 1);
+}
+
+int 
+end_tx(int trx_id) {
+	//release all the lock
+	//wake up next lock to run
+
+}
+
 udata_t*
 find(utable_t tid, ukey64_t key, int txn_id, int* result) {
 
@@ -44,7 +58,7 @@ find(utable_t tid, ukey64_t key, int txn_id, int* result) {
 		//return running or sleep?
 
 	//deadlock_detection
-		//undo
+		//undo -> result = FAILED
 
 	//release_latch
 
